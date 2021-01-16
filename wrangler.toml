@@ -1,0 +1,10 @@
+name = "noctis-alba"
+type = "webpack"
+account_id = "303bd29d822369fc1103756b8b814fca"
+workers_dev = true
+route = "noctisalba.melle.io/*"
+zone_id = "c3ac8238cc9ead1592c8b57bf8c53cd2"
+
+[site]
+bucket = "./public"
+entry-point = "workers-site"

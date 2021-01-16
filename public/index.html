@@ -1,0 +1,157 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <meta name="generator" content="Jekyll v4.1.1">
+    <title>Noctis Alba · Sign In</title>
+
+    <link rel="canonical" href="">
+  <link href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    <!-- Bootstrap core CSS -->
+<link href="bootstrap.min.css" rel="stylesheet">
+    <!-- Custom styles for this template -->
+
+    <style>
+      .bd-placeholder-img {
+        font-size: 1.125rem;
+        text-anchor: middle;
+        -webkit-user-select: none;
+        -moz-user-select: none;
+        -ms-user-select: none;
+        user-select: none;
+      }
+.alert{
+    display: none;
+}
+      @media (min-width: 768px) {
+        .bd-placeholder-img-lg {
+          font-size: 3.5rem;
+        }
+      }
+    </style>
+    <link href="signin.css" rel="stylesheet">
+
+  </head>
+  <body class="text-center">
+<img class="logo" src="images/NA-Logo.svg" alt="Noctis Alba Logo">
+	  <nav class="navbar navbar-expand-md navbar-dark fixed-top">
+  <!-- <a class="navbar-brand" href="index.html">NOCTIS ALBA</a> -->
+  <button class="navbar-toggler mr-auto" type="button" data-toggle="collapse" data-target="#navbarCollapse" aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation">
+    <span class="navbar-toggler-icon"></span>
+  </button>
+  <div class="collapse navbar-collapse" id="navbarCollapse">
+    <ul class="navbar-nav ml-auto">
+      <li class="nav-item">
+		  <a class="nav-link" href="features.html"><i class="fa fa-star"></i> Features <span class="sr-only">(current)</span></a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="about-us.html"><i class="fa fa-address-card"></i> About us</a>
+      </li>
+		<li class="nav-item">
+        <a class="nav-link" href="help.html"><i class="fa fa-question-circle"></i> Help</a>
+      </li>
+	  </ul>
+  </div>
+</nav>
+	  <div class="container-fluid">
+<div class="row">
+	  <div class="col-md-8 bg-img">
+		  <p>&nbsp;</p>
+		  <p>&nbsp;</p>
+		    <p>&nbsp;</p>
+		  <p>&nbsp;</p>
+		  <h2 id="na-tagline" class="text-white text-left ml-5"><strong>Insomnia is not something <br/>
+			  you need to fix, it's an opportunity!<br/> 
+	    -Noctis Alba</strong></h2>
+<p>&nbsp;</p>
+		  <p>&nbsp;</p>
+		  <p>&nbsp;</p>
+		  <p>&nbsp;</p>
+		  <p>&nbsp;</p>
+		  <p>&nbsp;</p>
+		  <p>&nbsp;</p>
+		  <p>&nbsp;</p>
+		  <p>&nbsp;</p>
+		  <p>&nbsp;</p>
+		  <p>&nbsp;</p>
+		  <p>&nbsp;</p>
+		  <p>&nbsp;</p>
+		  <p>&nbsp;</p>
+	  </div>
+	
+<div class="col-md-4">
+	<p>&nbsp;</p>
+		<p>&nbsp;</p>
+	<p>&nbsp;</p>
+    <form class="form-signin" name="userform" action="friends.html">
+  <div style="width:180px;height:auto; margin: 0 auto 30px auto;"></div>
+  <h1 class="mb-3 font-weight-normal">Login</h1>
+  <label for="inputEmail" class="sr-only">Email address</label>
+  <input name="mtusr" type="email" id="inputEmail" class="form-control" placeholder="Email address" aria-label="email address" autofocus>
+  <label for="inputPassword" class="sr-only">Password</label>
+  <input name="mtpwd" type="password" id="inputPassword" class="form-control" aria-label="password" placeholder="Password" >
+  <div class="checkbox mb-3">
+    <label>
+      <input type="checkbox" value="remember-me"> 
+      Keep me signed in
+    </label>
+  </div>
+  <button class="btn btn-lg btn-primary btn-block" type="submit">Start Chat</button>
+		 <button class="btn btn-lg btn-outline-secondary btn-block" type="submit"><i class="fa fa-google"></i> &nbsp;&nbsp;Sign In with Google</button>
+
+  <p class="mt-3">By signing in, you agree to Night Chatter's <a href="terms-of-use.html">Terms &amp; Conditions</a> &nbsp;&amp;&nbsp; <a href="privacy-policy.html">Privacy practices</a></p>
+		<p><a href="create-account.html" class="btn btn-secondary btn-lg active" role="button" aria-pressed="true">Create Account</a></p>
+</form>
+
+</div><!-- end 2nd col -->
+	</div>
+		  </div>
+	  
+	  <!-- Modal -->
+<div class="modal fade" id="ForgotPswdModal" tabindex="-1" role="dialog" aria-labelledby="ForgotPswdModalLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="ForgotPswdModalLabel">Forgot Password</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-hidden="true" aria-label="Close" >
+          <span aria-hidden="true">&times;</span>
+        </button>
+		  
+      </div>
+      <div class="modal-body">
+		  <!-- alert -->
+		   <div id="alertBox" class="alert alert-success text-left">
+   <!-- <button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button> -->
+            Sent successfully! Check your email address for instructions.
+        </div>
+		    <!-- end alert -->
+		  <p class="text-left">Enter your email address to receive instructions on how to reset your password.</p>
+		  <label for="inputEmail" class="sr-only">Email address</label>
+  <input type="email" class="form-control" placeholder="Email address" autofocus>
+		  <p>&nbsp;</p>
+      </div><!-- end modal body -->
+		
+      <div class="modal-footer">
+        <button type="button" class="btn btn-primary">Send</button>
+      </div>
+		
+    </div>
+  </div>
+</div>
+	<!-- End Modal -->	  
+	  
+</body>
+		<script src="https://cdn.jsdelivr.net/gh/gitbrent/bootstrap4-toggle@3.6.1/js/bootstrap4-toggle.min.js"></script>
+<script>window.jQuery || document.write('<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"><\/script>')</script>
+	<script src="js/bootstrap.bundle.min.js"></script>
+	<script>
+	$(document).ready(function(){
+    $('button').click(function(){
+        $('.alert').show()
+    }) 
+});
+	</script>
+</html>
