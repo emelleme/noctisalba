@@ -86,25 +86,25 @@
 	<p>&nbsp;</p>
 		<p>&nbsp;</p>
 	<p>&nbsp;</p>
-    <form class="form-signin" name="userform" action="friends.html">
-  <div style="width:180px;height:auto; margin: 0 auto 30px auto;"></div>
-  <h1 class="mb-3 font-weight-normal">Login</h1>
-  <label for="inputEmail" class="sr-only">Email address</label>
-  <input name="mtusr" type="email" id="inputEmail" class="form-control" placeholder="Email address" aria-label="email address" autofocus>
-  <label for="inputPassword" class="sr-only">Password</label>
-  <input name="mtpwd" type="password" id="inputPassword" class="form-control" aria-label="password" placeholder="Password" >
-  <div class="checkbox mb-3">
-    <label>
-      <input type="checkbox" value="remember-me"> 
-      Keep me signed in
-    </label>
-  </div>
-  <button class="btn btn-lg btn-primary btn-block" type="submit">Start Chat</button>
-		 <button class="btn btn-lg btn-outline-secondary btn-block" type="submit"><i class="fa fa-google"></i> &nbsp;&nbsp;Sign In with Google</button>
+    <form id="signInForm" class="form-signin" name="userform">
+      <div style="width:180px;height:auto; margin: 0 auto 30px auto;"></div>
+      <h1 class="mb-3 font-weight-normal">Login</h1>
+      <label for="inputEmail" class="sr-only">Email address</label>
+      <input name="mtusr" type="email" id="inputEmail" class="form-control mb-3" placeholder="Email address" aria-label="email address" autofocus>
+      <!-- <label for="inputPassword" class="sr-only">Password</label>
+      <input name="mtpwd" type="password" id="inputPassword" class="form-control" aria-label="password" placeholder="Password" > -->
+      <!-- <div class="checkbox mb-3">
+        <label>
+          <input type="checkbox" value="remember-me"> 
+          Keep me signed in
+        </label>
+      </div> -->
+      <button class="btn btn-lg btn-primary btn-block" type="submit">Start Chat</button>
+      <!-- <button class="btn btn-lg btn-outline-secondary btn-block" type="submit"><i class="fa fa-google"></i> &nbsp;&nbsp;Sign In with Google</button> -->
 
-  <p class="mt-3">By signing in, you agree to Night Chatter's <a href="terms-of-use.html">Terms &amp; Conditions</a> &nbsp;&amp;&nbsp; <a href="privacy-policy.html">Privacy practices</a></p>
-		<p><a href="create-account.html" class="btn btn-secondary btn-lg active" role="button" aria-pressed="true">Create Account</a></p>
-</form>
+      <p class="mt-3">By signing in, you agree to Night Chatter's <a href="terms-of-use.html">Terms &amp; Conditions</a> &nbsp;&amp;&nbsp; <a href="privacy-policy.html">Privacy practices</a></p>
+      <!-- <p><a href="create-account.html" class="btn btn-secondary btn-lg active" role="button" aria-pressed="true">Create Account</a></p> -->
+    </form>
 
 </div><!-- end 2nd col -->
 	</div>
@@ -142,16 +142,57 @@
   </div>
 </div>
 	<!-- End Modal -->	  
-	  
+<!-- The core Firebase JS SDK is always required and must be listed first -->
+<script src="https://www.gstatic.com/firebasejs/8.2.4/firebase-app.js"></script>
+
+<!-- TODO: Add SDKs for Firebase products that you want to use
+     https://firebase.google.com/docs/web/setup#available-libraries -->
+
+<script>
+  // Your web app's Firebase configuration
+  var firebaseConfig = {
+    apiKey: "AIzaSyCIyBo1FS-ZU9YboHuiiPXELwx7pcarV-0",
+    authDomain: "noctis-alba.firebaseapp.com",
+    projectId: "noctis-alba",
+    storageBucket: "noctis-alba.appspot.com",
+    messagingSenderId: "956427403103",
+    appId: "1:956427403103:web:962bf83b2455f597ca40ea"
+  };
+  // Initialize Firebase
+  firebase.initializeApp(firebaseConfig);
+</script>
 </body>
-		<script src="https://cdn.jsdelivr.net/gh/gitbrent/bootstrap4-toggle@3.6.1/js/bootstrap4-toggle.min.js"></script>
-<script>window.jQuery || document.write('<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"><\/script>')</script>
-	<script src="js/bootstrap.bundle.min.js"></script>
+	<script>window.jQuery || document.write('<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"><\/script>')</script>
+  <script src="js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/gh/gitbrent/bootstrap4-toggle@3.6.1/js/bootstrap4-toggle.min.js"></script>
 	<script>
 	$(document).ready(function(){
     $('button').click(function(){
         $('.alert').show()
-    }) 
+    })
+
+    $( "#signInForm" ).submit(function( event ) {
+      event.preventDefault();
+      // alert( "Handler for .submit() called." );
+      console.log(event);
+    });
+
+    function signUpWithEmailPasswoerd() {
+      var email = "test@example.com";
+      var password = "hunter2";
+      // [START auth_signup_password]
+      firebase.auth().createUserWithEmailAndPassword(email, password)
+        .then((user) => {
+          // Signed in 
+          // ...
+        })
+        .catch((error) => {
+          var errorCode = error.code;
+          var errorMessage = error.message;
+          // ..
+        });
+      // [END auth_signup_password]
+    }
 });
 	</script>
 </html>
