@@ -83,28 +83,14 @@
 	  </div>
 	
 <div class="col-md-4">
-	<p>&nbsp;</p>
-		<p>&nbsp;</p>
-	<p>&nbsp;</p>
-    <form id="signInForm" class="form-signin" name="userform">
-      <div style="width:180px;height:auto; margin: 0 auto 30px auto;"></div>
-      <h1 class="mb-3 font-weight-normal">Login</h1>
-      <label for="inputEmail" class="sr-only">Email address</label>
-      <input name="mtusr" type="email" id="inputEmail" class="form-control mb-3" placeholder="Email address" aria-label="email address" autofocus>
-      <!-- <label for="inputPassword" class="sr-only">Password</label>
-      <input name="mtpwd" type="password" id="inputPassword" class="form-control" aria-label="password" placeholder="Password" > -->
-      <!-- <div class="checkbox mb-3">
-        <label>
-          <input type="checkbox" value="remember-me"> 
-          Keep me signed in
-        </label>
-      </div> -->
-      <button class="btn btn-lg btn-primary btn-block" type="submit">Start Chat</button>
-      <!-- <button class="btn btn-lg btn-outline-secondary btn-block" type="submit"><i class="fa fa-google"></i> &nbsp;&nbsp;Sign In with Google</button> -->
-
-      <p class="mt-3">By signing in, you agree to Night Chatter's <a href="terms-of-use.html">Terms &amp; Conditions</a> &nbsp;&amp;&nbsp; <a href="privacy-policy.html">Privacy practices</a></p>
-      <!-- <p><a href="create-account.html" class="btn btn-secondary btn-lg active" role="button" aria-pressed="true">Create Account</a></p> -->
-    </form>
+  <p>&nbsp;</p>
+		  <p>&nbsp;</p>
+		    <p>&nbsp;</p>
+    <div id="app">
+      Loading...
+    </div>
+    <p class="mt-3">By signing in, you agree to Night Chatter's <a href="terms-of-use.html">Terms &amp; Conditions</a> &nbsp;&amp;&nbsp; <a href="privacy-policy.html">Privacy practices</a></p>
+      
 
 </div><!-- end 2nd col -->
 	</div>
@@ -141,58 +127,60 @@
     </div>
   </div>
 </div>
-	<!-- End Modal -->	  
-<!-- The core Firebase JS SDK is always required and must be listed first -->
-<script src="https://www.gstatic.com/firebasejs/8.2.4/firebase-app.js"></script>
 
-<!-- TODO: Add SDKs for Firebase products that you want to use
-     https://firebase.google.com/docs/web/setup#available-libraries -->
-
-<script>
-  // Your web app's Firebase configuration
-  var firebaseConfig = {
-    apiKey: "AIzaSyCIyBo1FS-ZU9YboHuiiPXELwx7pcarV-0",
-    authDomain: "noctis-alba.firebaseapp.com",
-    projectId: "noctis-alba",
-    storageBucket: "noctis-alba.appspot.com",
-    messagingSenderId: "956427403103",
-    appId: "1:956427403103:web:962bf83b2455f597ca40ea"
-  };
-  // Initialize Firebase
-  firebase.initializeApp(firebaseConfig);
-</script>
 </body>
-	<script>window.jQuery || document.write('<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"><\/script>')</script>
+  <script src="https://cdn.jsdelivr.net/npm/magic-sdk/dist/magic.js"></script>
+	<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
   <script src="js/bootstrap.bundle.min.js"></script>
   <script src="https://cdn.jsdelivr.net/gh/gitbrent/bootstrap4-toggle@3.6.1/js/bootstrap4-toggle.min.js"></script>
 	<script>
-	$(document).ready(function(){
-    $('button').click(function(){
-        $('.alert').show()
-    })
-
-    $( "#signInForm" ).submit(function( event ) {
-      event.preventDefault();
-      // alert( "Handler for .submit() called." );
-      console.log(event);
+    
+    $(document).ready(function(){
+      render();
     });
+      let magic = new Magic("pk_test_3F8F2B46C789AB90");
+      /* 3️⃣ Implement Render Function */
+      const render = async () => {
+        const isLoggedIn = await magic.user.isLoggedIn();
 
-    function signUpWithEmailPasswoerd() {
-      var email = "test@example.com";
-      var password = "hunter2";
-      // [START auth_signup_password]
-      firebase.auth().createUserWithEmailAndPassword(email, password)
-        .then((user) => {
-          // Signed in 
-          // ...
-        })
-        .catch((error) => {
-          var errorCode = error.code;
-          var errorMessage = error.message;
-          // ..
-        });
-      // [END auth_signup_password]
-    }
-});
+        /* Show login form if user is not logged in */
+        let html = `
+        <form onsubmit="handleLogin(event)">
+          <div style="width:180px;height:auto; margin: 0 auto 30px auto;"></div>
+          <h1 class="mb-3 font-weight-normal">Login</h1>
+          <label for="inputEmail" class="sr-only">Email address</label>
+          <input name="email" type="email" id="inputEmail" class="form-control mb-3" placeholder="Email address" aria-label="email address" autofocus>
+          <button class="btn btn-lg btn-primary btn-block" type="submit">Start Chat</button>
+        </form>
+        `;
+
+        if (isLoggedIn) {
+          /* Get user metadata including email */
+          window.document.location.href = "/my-account.html"
+          const userMetadata = await magic.user.getMetadata();
+          html = `
+            <h1>Current user: ${userMetadata.email}</h1>
+            <button onclick="handleLogout()">Logout</button>
+          `;
+        }
+
+        document.getElementById("app").innerHTML = html;
+      };
+      /* 4️⃣ Implement Login Handler */
+      const handleLogin = async (e) => {
+        e.preventDefault();
+        const email = new FormData(e.target).get("email");
+        if (email) {
+          /* One-liner login 🤯 */
+          await magic.auth.loginWithMagicLink({ email });
+          render();
+        }
+      };
+
+      /* 5️⃣ Implement Logout Handler */
+      const handleLogout = async () => {
+        await magic.user.logout();
+        render();
+      };
 	</script>
 </html>

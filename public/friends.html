@@ -56,7 +56,9 @@
 
 			<ul class="navbar-nav ml-auto">
 				  <li class="nav-item dropdown">
-        <a class="nav-link dropdown-toggle" href="#" id="dropdown03" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><img src="images/avatar-icon.png" height="21" width="21" style="margin-right:5px"> Julie Cops</a>
+        <a class="nav-link dropdown-toggle" href="#" id="dropdown03" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+          <img src="images/avatar-icon.png" height="21" width="21" style="margin-right:5px"> 
+          <span id="userName"></a>
         <div class="dropdown-menu dropdown-menu-right" aria-labelledby="dropdown03">
           <a class="dropdown-item" href="settings.html#collapseSettings"><i class="fa fa-gear"></i> Settings</a>
           <a class="dropdown-item" href="index.html"><i class="fa fa-sign-out"></i> Logout</a>
@@ -116,53 +118,20 @@
     </tr>
   </thead>
   <tbody>
-    <tr>
+    <!-- <tr>
       <th scope="row" class="text-left">
-		
-  <input class="switch" type="checkbox" checked data-toggle="toggle" data-on="UP" data-off="ZZZ" data-onstyle="success" data-offstyle="secondary" aria-label="status">
-			
-        </th>
+        <input class="switch" type="checkbox" checked data-toggle="toggle" data-on="UP" data-off="ZZZ" data-onstyle="success" data-offstyle="secondary" aria-label="status">
+      </th>
       <td class="text-right"><i class="fa fa-user"></i><span class="contact-names">Rachel Duke</span></td>
       <td><strong>UP</strong></td>
-    </tr>
-    <tr>
-      <th scope="row" class="text-left">
-		<input class="switch" type="checkbox" data-toggle="toggle" data-on="UP" data-off="ZZZ" data-onstyle="success" data-offstyle="secondary" aria-label="status">
-		
-		</th>
-      <td class="text-right"><i class="fa fa-user"></i></span><span class="contact-names">Lloyd Emerick</span></td>
-      <td>ZZZ</td>
-    </tr>
-    <tr>
-      <th scope="row" class="text-left">
-		<input class="switch" type="checkbox" checked data-toggle="toggle" data-on="UP" data-off="ZZZ" data-onstyle="success" data-offstyle="secondary" aria-label="status">
-		  
-		</th>
-      <td class="text-right"><i class="fa fa-user"></i><span class="contact-names">Doug Larke</span></span></td>
-      <td><strong>UP</strong></td>
-    </tr>
-    <tr>
-      <th scope="row" class="text-left">
-		<input class="switch" type="checkbox" data-toggle="toggle" data-on="UP" data-off="ZZZ" data-onstyle="success" data-offstyle="secondary" aria-label="status">
-		
-		</th>
-      <td class="text-right"><i class="fa fa-user"></i></span><span class="contact-names">Elaine Nathan</span></td>
-      <td>ZZZ</td>
-    </tr>
-    <tr>
-      <th scope="row" class="text-left">
-		<input class="switch" type="checkbox" data-toggle="toggle" data-on="UP" data-off="ZZZ" data-onstyle="success" data-offstyle="secondary" aria-label="status">
-		
-		</th>
-      <td class="text-right"><i class="fa fa-user"></i><span class="contact-names">Eva K Osanic</span></td>
-      <td>ZZZ</td>
-    </tr>
+    </tr> -->
   </tbody>
 </table>
   </form>
 <div class="row">
-<div class="col text-left">
-Showing 1 - 6 of 12</div>
+<!-- <div class="col text-left">
+  Showing 1 - 6 of 12
+</div> -->
 <div class="col">
 <nav aria-label="Page navigation example">
   <ul class="pagination justify-content-end">
@@ -188,11 +157,100 @@ Showing 1 - 6 of 12</div>
 	
 </div>
 </body>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/magic-sdk/dist/magic.js"></script>
+<script src="https://unpkg.com/dexie@latest/dist/dexie.js"></script>
+<script src="//cdn.ably.io/lib/ably.min-1.js"></script>
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
 <script src="js/bootstrap4-toggle.js"></script>
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js"></script>
 <script>
+  var ably = new Ably.Realtime('FoCmEw.GR0MCw:l2bFPn7u_Bj7fMzV');
+  ably.connection.on('connected', function() {
+    console.log('connected')
+  });
+  let db = new Dexie("users");
+  db.version(1).stores({
+      settings: '++id,name,email'
+  });
+
+  let fdb = new Dexie("na");
+  fdb.version(1).stores({
+      connections: '++id,uid,name,email,myStatus,friendStatus,connectionStatus,inviteCode'
+  });
+
+  fireAuth = async (did) => {
+    const settings = {
+        method: 'GET',
+        headers: {
+            Accept: 'application/json',
+            'X-Custom-DID': did
+        }
+    };
+    try {
+        const fetchResponse = await fetch(`https://api.3l.workers.dev/v1/getJWT`, settings);
+        const data = await fetchResponse.body;
+        console.log(data);
+        return data;
+    } catch (e) {
+        return e;
+    }
+  }
+  let magic = new Magic("pk_test_3F8F2B46C789AB90");
+
+  
+
+  /* 3️⃣ Implement Render Function */
+  const render = async () => {
+        const isLoggedIn = await magic.user.isLoggedIn();
+
+        
+
+        if (!isLoggedIn) {
+          window.document.location.href = "/"
+          // initialize database
+        }
+          //
+          // Get friends
+          //
+          fdb.connections.where("connectionStatus").notEqual("blocked")
+          .each(function (friend){
+            //load friends into table
+            console.log('friend loaded');
+            let status = "pending";
+            if(friend.friendStatus){
+              status = friendStatus;
+            }
+
+            var newRow = $("<tr>");
+            var cols = "";
+
+            cols += `<th scope="row" class="text-left">
+              <input class="newSwitch" type="checkbox" data-toggle="toggle" data-on="UP" data-off="ZZZ" data-onstyle="success" data-offstyle="secondary" aria-label="status">
+            </th>`;
+            cols += `<td class="text-right"><i class="fa fa-user"></i><span class="contact-names">${friend.name}</span></td>`;
+            cols += `<td><strong>${status}</strong></td>`;
+
+            newRow.append(cols);
+            $("table.table-striped").append(newRow);
+            $('.newSwitch').bootstrapToggle();
+          })
+          .catch(function(error) {
+             //
+             // Finally don't forget to catch any error
+             // that could have happened anywhere in the
+             // code blocks above.
+             //
+             alert ("Ooops: " + error);
+          });
+          
+          
+
+          /* Get user metadata including email */
+          // const keys = (await dbPromise).getAllKeys('settings');
+          // console.log(keys);
+       
+
+      };
 function myFunction() {
   // Get the checkbox
   var checkBox = document.getElementById("myCheck");
@@ -206,5 +264,22 @@ function myFunction() {
     text.style.display = "none";
   }
 }
+
+  $(document).ready(function(){
+    render();
+    $(".switch").on("click", e => {
+      console.log(e.data("id"));
+    })
+
+    db.settings.get(1)
+    .then(function (user) {
+      document.getElementById("userName").innerHTML = user.name;
+    })
+    .catch(function(error){
+      console.log(error)
+    }) 
+
+    
+  });
 </script>
 </html>
