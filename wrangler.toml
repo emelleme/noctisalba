@@ -1,9 +1,9 @@
-name = "noctis-alba"
+name = "live"
 type = "webpack"
-account_id = "303bd29d822369fc1103756b8b814fca"
+account_id = "fd93b137ef2b433cd1b8383bcc095c74"
 workers_dev = true
-route = "noctisalba.melle.io/*"
-zone_id = "c3ac8238cc9ead1592c8b57bf8c53cd2"
+route = "noctis-alba.com/*"
+zone_id = "fee58c1bfc6995c4c5227ee4b4ebf7ad"
 
 [site]
 bucket = "./public"

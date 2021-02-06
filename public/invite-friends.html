@@ -195,7 +195,7 @@
       body: formDataJsonString
     };
     try {
-      const fetchResponse = await fetch(`https://api.3l.workers.dev/v1/inviteFriend`, settings);
+      const fetchResponse = await fetch(`https://api.noctis-alba.com/inviteFriend`, settings);
       const data = await fetchResponse.json();
       console.log(data);
       if(data.success === true){

@@ -187,7 +187,7 @@
         }
     };
     try {
-        const fetchResponse = await fetch(`https://api.3l.workers.dev/v1/getJWT`, settings);
+        const fetchResponse = await fetch(`https://api.noctis-alba.com/getJWT`, settings);
         const data = await fetchResponse.body;
         console.log(data);
         return data;
@@ -195,7 +195,7 @@
         return e;
     }
   }
-  let magic = new Magic("pk_test_3F8F2B46C789AB90");
+  let magic = new Magic("pk_live_09D4E08E8CBA5F91");
 
   
 
