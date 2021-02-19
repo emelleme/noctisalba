@@ -159,15 +159,14 @@
 </body>
 <script src="https://cdn.jsdelivr.net/npm/magic-sdk/dist/magic.js"></script>
 <script src="https://unpkg.com/dexie@latest/dist/dexie.js"></script>
+<script src="https://unpkg.com/dexie-export-import/dist/dexie-export-import.js"></script>
 <script src="//cdn.ably.io/lib/ably.min-1.js"></script>
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
 <script src="js/bootstrap4-toggle.js"></script>
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js"></script>
 <script>
   var ably = new Ably.Realtime('FoCmEw.GR0MCw:l2bFPn7u_Bj7fMzV');
-  ably.connection.on('connected', function() {
-    console.log('connected')
-  });
+  
   let db = new Dexie("users");
   db.version(1).stores({
       settings: '++id,name,email'
@@ -175,8 +174,15 @@
 
   let fdb = new Dexie("na");
   fdb.version(1).stores({
-      connections: '++id,uid,name,email,myStatus,friendStatus,connectionStatus,inviteCode'
+      connections: '++id,uid,name,email,myState,friendState,connectionState,inviteCode'
   });
+
+  let invitedb = new Dexie("invites");
+  invitedb.version(1).stores({
+      incoming: '++id,code'
+  });
+
+  // To-do: resolve incoming invites
 
   fireAuth = async (did) => {
     const settings = {
@@ -197,60 +203,134 @@
   }
   let magic = new Magic("pk_live_09D4E08E8CBA5F91");
 
-  
+  let checkInvites = async (did,invites) => {
+    const init = {
+      method: 'POST',
+      headers: {
+        "Accept": "application/json",
+        "Content-Type": "application/json",
+        'X-Custom-DID': did
+      },
+      body: JSON.stringify(invites)
+    };
+    try {
+      const fetchResponse = await fetch(`https://api.noctis-alba.com/getInvites`, init);
+      const data = await fetchResponse.json();
+      console.log(data);
+      if(data){
+        
+        //Save friend to database
+        let friend = data[0];
+        fdb.connections.add({
+          name: data[0].invitedBy,
+          inviteCode: data[0].inviteCode,
+          friendState:"UP",
+          connectionState: "active"
+        })
+        .then( async (result) => {
+          await invitedb.incoming.delete(1);
+          // direct to confirmation
+          var newRow = $("<tr>");
+            var cols = "";
 
+            cols += `<th scope="row" class="text-left">
+              <input class="newSwitch" type="checkbox" data-toggle="toggle" data-on="UP" data-off="ZZZ" data-onstyle="success" data-offstyle="secondary" aria-label="State">
+            </th>`;
+            cols += `<td class="text-right"><i class="fa fa-user"></i><span class="contact-names">${friend.invitedBy}</span></td>`;
+            cols += `<td><strong>${result.connectionState}</strong></td>`;
+
+            newRow.append(cols);
+            $("table.table-striped").append(newRow);
+            $('.newSwitch').bootstrapToggle();
+        })
+      }else{
+        //something went wrong. todo: add error message
+      }
+    } catch (e) {
+      return e;
+    }
+  }
   /* 3️⃣ Implement Render Function */
   const render = async () => {
         const isLoggedIn = await magic.user.isLoggedIn();
-
-        
 
         if (!isLoggedIn) {
           window.document.location.href = "/"
           // initialize database
         }
-          //
-          // Get friends
-          //
-          fdb.connections.where("connectionStatus").notEqual("blocked")
-          .each(function (friend){
-            //load friends into table
-            console.log('friend loaded');
-            let status = "pending";
-            if(friend.friendStatus){
-              status = friendStatus;
-            }
+        let did = await magic.user.getIdToken();
+        const { email, publicAddress } = await magic.user.getMetadata();
+        const chanId = publicAddress.substr(publicAddress.length - 6);
+        console.log(chanId)
+        ably.connection.on('connected', function() {
+          const channel = realtime.channels.get("chan:"+chanId);
+          console.log('connected')
+        });
+        //
+        // Check invites
+        //
+        const userMetadata = await magic.user.getMetadata();
+        
+        invites = await invitedb.incoming.orderBy("code").toArray()
+        console.log(did);
+        if(invites.length > 0)
+          checkInvites(did,invites);
+        
+        
+        //
+        // Get friends
+        //
+        fdb.connections.where("connectionState").notEqual("blocked")
+        .each(function (friend){
+          //load friends into table
+          console.log('friend loaded');
+          let state = "pending";
+          if(friend.friendState){
+            state = friendState;
+          }
 
-            var newRow = $("<tr>");
-            var cols = "";
+          var newRow = $("<tr>");
+          var cols = "";
 
-            cols += `<th scope="row" class="text-left">
-              <input class="newSwitch" type="checkbox" data-toggle="toggle" data-on="UP" data-off="ZZZ" data-onstyle="success" data-offstyle="secondary" aria-label="status">
-            </th>`;
-            cols += `<td class="text-right"><i class="fa fa-user"></i><span class="contact-names">${friend.name}</span></td>`;
-            cols += `<td><strong>${status}</strong></td>`;
+          cols += `<th scope="row" class="text-left">
+            <input class="newSwitch" type="checkbox" data-toggle="toggle" data-on="UP" data-off="ZZZ" data-onstyle="success" data-offstyle="secondary" aria-label="State">
+          </th>`;
+          cols += `<td class="text-right"><i class="fa fa-user"></i><span class="contact-names">${friend.name}</span></td>`;
+          cols += `<td><strong>${state}</strong></td>`;
 
-            newRow.append(cols);
-            $("table.table-striped").append(newRow);
-            $('.newSwitch').bootstrapToggle();
-          })
-          .catch(function(error) {
-             //
-             // Finally don't forget to catch any error
-             // that could have happened anywhere in the
-             // code blocks above.
-             //
-             alert ("Ooops: " + error);
-          });
-          
-          
-
-          /* Get user metadata including email */
-          // const keys = (await dbPromise).getAllKeys('settings');
-          // console.log(keys);
+          newRow.append(cols);
+          $("table.table-striped").append(newRow);
+          $('.newSwitch').bootstrapToggle();
+        })
+        .catch(function(error) {
+            //
+            // Finally don't forget to catch any error
+            // that could have happened anywhere in the
+            // code blocks above.
+            //
+            alert ("Ooops: " + error);
+        });
+      
+        const blob = await fdb.export(fdb, [{prettyJson: true}]);
+        let reader = new FileReader();
+        reader.readAsDataURL(blob); 
+        reader.onloadend = function() {
+        let base64data = reader.result;                
+        console.log(base64data);
+ }
        
 
       };
+
+
+let exportData = async () => {
+  //
+  // Export to Blob
+  //
+  const blob = await exportDB(fdb, [options]);
+  console.log(blob)
+  return true;
+}
 function myFunction() {
   // Get the checkbox
   var checkBox = document.getElementById("myCheck");

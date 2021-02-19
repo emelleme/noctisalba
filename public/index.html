@@ -133,13 +133,42 @@
   <script src="https://cdn.jsdelivr.net/npm/@magic-ext/oauth/dist/extension.js"></script>
 	<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
   <script src="js/bootstrap.bundle.min.js"></script>
+  <script src="https://unpkg.com/dexie@latest/dist/dexie.js"></script>
+
   <script src="https://cdn.jsdelivr.net/gh/gitbrent/bootstrap4-toggle@3.6.1/js/bootstrap4-toggle.min.js"></script>
 	<script>
-    
+    const urlParams = new URLSearchParams(window.location.search);
+    const invite = urlParams.get('acceptInvite');
+    console.log(invite)
+    let db = new Dexie("invites");
+    db.version(1).stores({
+        incoming: '++id,code'
+    });
     $(document).ready(function(){
       render();
+      let invCount = 0;
+      if(invite){
+        db.incoming.where("code").equalsIgnoreCase(invite)
+        .each(function (invite) {
+          invCount++;
+          return Promise()
+        })
+        .then(() => {
+          if(invCount == 0){
+            db.incoming.add({
+              code:invite
+            })
+          }
+        })
+        .catch(function(error){
+          console.log(error)
+        })
+        
+      }
+       
     });
-      let magic = new Magic("pk_live_09D4E08E8CBA5F91");
+
+    let magic = new Magic("pk_live_09D4E08E8CBA5F91");
       /* 3️⃣ Implement Render Function */
       const render = async () => {
         const isLoggedIn = await magic.user.isLoggedIn();

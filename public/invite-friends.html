@@ -112,7 +112,8 @@
     <input type="text" required id="inputName" name="inputName" class="form-control" aria-label="first name" placeholder="First Name" >
     </div>
     
-    <input type="hidden" id="senderName" name="senderName" value="">
+    <input type="hidden" id="senderKey" name="senderKey" value="">
+    <input type="hidden" id="invitedBy" name="invitedBy" value="">
 
     <input type="hidden" id="inviteCode" name="inviteCode" value="">
 
@@ -138,7 +139,7 @@
 
   let fdb = new Dexie("na");
   fdb.version(1).stores({
-      connections: '++id,uid,name,email,myStatus,friendStatus,connectionStatus,inviteCode'
+      connections: '++id,pubKey,name,email,myState,friendState,connectionState,inviteCode'
   });
 
   function makeid(length) {
@@ -156,7 +157,9 @@
 
     db.settings.get(1)
     .then(function (user) {
-      document.getElementById("senderName").value = user.name;
+      console.log(user)
+      document.getElementById("senderKey").value = user.publicAddress;
+      document.getElementById("invitedBy").value = user.name;
       let inviteCode = makeid(5);
       document.getElementById("inviteCode").value = inviteCode;
       document.getElementById("sbmt").disabled = false;
@@ -204,7 +207,7 @@
           email: plainFormData.inputEmail,
           name: plainFormData.inputName,
           inviteCode: plainFormData.inviteCode,
-          connectionStatus: "pending"
+          connectionState: "pending"
         })
         .then((result) =>{
           // direct to confirmation

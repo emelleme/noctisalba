@@ -66,90 +66,128 @@
 </body>
   <script src="https://cdn.jsdelivr.net/npm/magic-sdk/dist/magic.js"></script>
   <script src="https://unpkg.com/dexie@latest/dist/dexie.js"></script>
+  <script src="https://unpkg.com/dexie-export-import/dist/dexie-export-import.js"></script>
 	<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
   <script src="js/bootstrap.bundle.min.js"></script>
   <script src="https://cdn.jsdelivr.net/gh/gitbrent/bootstrap4-toggle@3.6.1/js/bootstrap4-toggle.min.js"></script>
   <script>
-    
+
+    function isEmpty(obj) {
+        return Object.keys(obj).length === 0;
+    }
+
+    let getUser = async (did) => {
+      const settings = {
+          method: 'GET',
+          headers: {
+              "Accept": "application/json",
+              "Content-Type": "application/json",
+              "X-Custom-DID": did
+          }
+      };
+      try {
+          const fetchResponse = await fetch(`https://api.noctis-alba.com/getUser`, settings);
+          const data = await fetchResponse.json();
+          console.log(data);
+          return data;
+      } catch (e) {
+          return e;
+      }
+    }
+
+    let syncUser = async (did,blob) => {
+      //
+      // Export to Blob
+      //
+      let reader = new FileReader();
+      reader.readAsDataURL(blob); 
+      reader.onloadend = async function() {
+        let base64data = reader.result;
+        const init = {
+          method: 'POST',
+          headers: {
+            "Accept": "application/json",
+            "Content-Type": "application/json",
+            'X-Custom-DID': did
+          },
+          body: JSON.stringify({data:base64data})
+        };
+        try {
+          const fetchResponse = await fetch(`https://api.noctis-alba.com/syncUser`, init);
+          const resp = await fetchResponse.json();
+          console.log(resp);
+          return resp;
+          
+        } catch (e) {
+          return e;
+        }
+        return true;
+      }
+    }
 
     $(document).ready(function(){
       render();
     });
-      let magic = new Magic("pk_live_09D4E08E8CBA5F91");
-      let db = new Dexie("users");
-      db.version(1).stores({
-          settings: '++id,name,email,uid,publicAddress'
-      });
-      
-      const saveUser = async () => {
-        db.settings.get({email:document.getElementById("inputEmail").value})
-        .then(function (user) {
-          return db.settings.update(user.id,{name: document.getElementById("inputName").value})
+
+    let magic = new Magic("pk_live_09D4E08E8CBA5F91");
+    let db = new Dexie("users");
+    db.version(1).stores({
+        settings: '++id,name,email,uid,publicAddress'
+    });
+    
+    const saveUser = async (e) => {
+      e.preventDefault()
+      document.getElementById("sbmt").disabled = true;
+      db.settings.get({email:document.getElementById("inputEmail").value})
+      .then(function (user) {
+        return db.settings.update(user.id,{name: document.getElementById("inputName").value})
+      })
+      .then (async function(){
+        let did = await magic.user.getIdToken();
+        const blob = await db.export(db, [{prettyJson: true}]);
+        let result = await syncUser(did,blob)
+        window.document.location.href = "/friends.html"
         })
-        .then (function(){
-              //
-              // Then when data is stored, read from it
-              //
-              window.document.location.href = "/friends.html"
-          })
-          .catch(function(error) {
-             //
-             // Finally don't forget to catch any error
-             // that could have happened anywhere in the
-             // code blocks above.
-             //
-             alert ("Ooops: " + error);
-          });
-      }
+        .catch(function(error) {
+            console.log ("Ooops: " + error);
+        });
+    }
+
+
       /* 3️⃣ Implement Render Function */
       const render = async () => {
         const isLoggedIn = await magic.user.isLoggedIn();
 
-        
-
         if (isLoggedIn) {
+          let did = await magic.user.getIdToken();
           const userMetadata = await magic.user.getMetadata();
           document.getElementById("inputEmail").value = userMetadata.email;
-          console.log(userMetadata)
-          // initialize database
-          
-          //
-          // Put some data into it
-          //
-          db.open()
-          .then(function(){
-            return db.settings.get({email:userMetadata.email});
-          })
-         .then(function (user) {
-              //
-              // Display the result
-              //
+
+          let userData = await getUser(did);
+          if(!isEmpty(userData)){
+            //todo: import database
+          } else {
+            //write initial data to database
+            db.open()
+            .then(function(){
+              return db.settings.get({email:userMetadata.email});
+            })
+            .then(function (user) {
               console.log(user)
               if(user)
                 document.getElementById("inputName").value = user.name;
               else
                 db.settings.add({email: document.getElementById("inputEmail").value,uid:userMetadata.issuer,publicAddress:userMetadata.publicAddress})
               document.getElementById("sbmt").disabled = false;
-          }).catch(function(error) {
-             //
-             // Finally don't forget to catch any error
-             // that could have happened anywhere in the
-             // code blocks above.
-             //
-             alert ("Ooops: " + error);
-          });
-
-          /* Get user metadata including email */
-          // const keys = (await dbPromise).getAllKeys('settings');
-          // console.log(keys);
-          
-          
+            }).catch(function(error) {
+              console.log ("Ooops: " + error);
+            });
+          }
           
         }else{
           window.document.location.href = "/"
         }
 
-        document.getElementById("app").innerHTML = html;
       };
       
 
