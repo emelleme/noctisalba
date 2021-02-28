@@ -37,8 +37,8 @@
 		<li class="nav-item">
         <a class="nav-link" href="help.html"><i class="fa fa-question-circle"></i> Help</a>
       </li>
-		 <li class="nav-item active">
-        <a class="nav-link" href="contacts.html"><i class="fa fa-address-book"></i> Friends</a>
+		 <li class="nav-item">
+        <a class="nav-link" href="friends.html"><i class="fa fa-address-book"></i> Friends</a>
       </li>
 		 <li class="nav-item">
         <a class="nav-link" href="invite-friends.html"><i class="fa fa-envelope"></i> Invite</a>
@@ -54,17 +54,17 @@
     </form>-->
 		    </ul>
 
-			<ul class="navbar-nav ml-auto">
-				  <li class="nav-item dropdown">
+    <ul class="navbar-nav ml-auto">
+      <li class="nav-item dropdown">
         <a class="nav-link dropdown-toggle" href="#" id="dropdown03" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-          <img id="avatarIcon" src="images/avatar-icon.png" height="21" width="21" style="margin-right:5px"> 
-          <span id="userName"></a>
+        <img id="avatarIcon" src="images/avatar-icon.png" height="21" width="21" style="margin-right:5px"> 
+        <span id="userName"></a>
         <div class="dropdown-menu dropdown-menu-right" aria-labelledby="dropdown03">
-          <a class="dropdown-item" href="my-account.html"><i class="fa fa-gear"></i> Settings</a>
-          <a class="dropdown-item" onclick="handleLogout()"><i class="fa fa-sign-out"></i> Logout</a>
+        <a class="dropdown-item" href="my-account.html"><i class="fa fa-gear"></i> Settings</a>
+        <a class="dropdown-item" onclick="handleLogout()"><i class="fa fa-sign-out"></i> Logout</a>
         </div>
       </li>
-</ul>
+    </ul>
  
   </div>
 </nav>
@@ -234,7 +234,8 @@
   }
   let magic = new Magic("pk_live_09D4E08E8CBA5F91");
 
-  let checkInvites = async (did,invites) => {
+  let checkInvites = async (invites) => {
+    let did = await magic.user.getIdToken();
     const { email } = await magic.user.getMetadata();
     const init = {
       method: 'POST',
@@ -285,106 +286,95 @@
 
   /* 3️⃣ Implement Render Function */
   const render = async () => {
-    const isLoggedIn = await magic.user.isLoggedIn();
-
-    if (!isLoggedIn) {
-      window.document.location.href = "/"
-      // initialize database
-    }
-    let did = await magic.user.getIdToken();
-    const { email, publicAddress } = await magic.user.getMetadata();
-    const chanId = publicAddress.substr(publicAddress.length - 6);
-    console.log(chanId)
-
-    let ably = new Ably.Realtime({key:'FoCmEw.GR0MCw:l2bFPn7u_Bj7fMzV',clientId:publicAddress});
-
-    ably.connection.on('connected', function() {
-      const channel = ably.channels.get("chan:"+chanId);
-      channel.subscribe( async function(message) {
-        console.log(message.data);
-        await fdb.connections
-        .where("publicAddress")
-        .equals(message.data.from).modify({friendState: message.data.state});
-        let friend = await fdb.connections
-        .where("publicAddress")
-        .equals(message.data.from).first()
-        console.log(friend)
-        document.getElementById(message.data.chanId+'_state').innerHTML = message.data.state;
-        document.getElementById(message.data.chanId+'_state').className = '';
-        document.getElementById(message.data.chanId+'_state').className = message.data.state.toLowerCase();
-        document.getElementById("alertBox").innerHTML = friend.name + " is " + message.data.state + "!";
-        $('#alertModal').modal('show');
-
-        // alert(message.data.state+"!!")
+    
+    db.settings.get(1)
+    .then(async function (user) {
+      const chanId = user.publicAddress.substr(user.publicAddress.length - 6);
+      if(user.name === undefined)
+        window.document.location.href = "/my-account.html"
+      document.getElementById("userName").innerHTML = user.name;
+      (user.image  !== undefined ? document.getElementById("avatarIcon").src = user.image : console.log('no image'));
+     
+      let ably = new Ably.Realtime({key:'FoCmEw.GR0MCw:l2bFPn7u_Bj7fMzV',clientId:user.publicAddress});
+      ably.connection.on('connected', function() {
+        const channel = ably.channels.get("chan:"+chanId);
+        channel.subscribe( async function(message) {
+          console.log(message.data);
+          await fdb.connections
+          .where("publicAddress")
+          .equals(message.data.from).modify({friendState: message.data.state});
+          let friend = await fdb.connections
+          .where("publicAddress")
+          .equals(message.data.from).first()
+          console.log(friend)
+          document.getElementById(message.data.chanId+'_state').innerHTML = message.data.state;
+          document.getElementById(message.data.chanId+'_state').className = '';
+          document.getElementById(message.data.chanId+'_state').className = message.data.state.toLowerCase();
+          document.getElementById("alertBox").innerHTML = friend.name + " is " + message.data.state + "!";
+          $('#alertModal').modal('show');
+          // alert(message.data.state+"!!")
+        });
+        console.log('connected')
       });
-      console.log('connected')
-    });
-    //
-    // Check invites
-    //
-    const userMetadata = await magic.user.getMetadata();
-    
-    invites = await fdb.connections.where("connectionState").equals("pending").toArray()
-    if(invites.length > 0)
-      await checkInvites(did,invites);
-        
-        
-    //
-    // Get friends
-    //
-    fdb.connections.where("connectionState").notEqual("blocked")
-    .each(function (friend){
-      //load friends into table
-      // console.log(friend);
-      let state = friend.connectionState;
-      let mystate = ((friend.myState !== null) ? friend.myState : "off");
-      let disableSwitch = "disabled";
-      if(friend.friendState !== undefined){
-        state = friend.friendState;
-      }
-      if(friend.connectionState !== 'pending'){
-        disableSwitch = "";
-      }
 
-      const chanId = (friend.publicAddress !== undefined ? friend.publicAddress.substr(friend.publicAddress.length - 6) : "");
+      //
+      // Check invites
+      //
+      invites = await fdb.connections.where("connectionState").equals("pending").toArray()
+      if(invites.length > 0)
+        await checkInvites(invites);
+          
+      //
+      // Get friends
+      //
+      fdb.connections.where("connectionState").notEqual("blocked")
+      .each(function (friend){
+        //load friends into table
+        // console.log(friend);
+        let state = friend.connectionState;
+        let mystate = ((friend.myState !== null) ? friend.myState : "off");
+        let disableSwitch = "disabled";
+        if(friend.friendState !== undefined){
+          state = friend.friendState;
+        }
+        if(friend.connectionState !== 'pending'){
+          disableSwitch = "";
+        }
+        const chanId = (friend.publicAddress !== undefined ? friend.publicAddress.substr(friend.publicAddress.length - 6) : "");
+        var newRow = $("<tr>");
+        var cols = "";
+        cols += `<th scope="row" class="text-left">
+          <input id="${chanId}" class="newSwitch" ${disableSwitch} data-pubkey="${friend.publicAddress}" type="checkbox" data-toggle="toggle" data-on="UP" data-off="ZZZ" data-onstyle="success" data-offstyle="secondary" aria-label="State">
+        </th>`;
+        cols += `<td class="text-right"><i class="fa fa-user"></i><span class="contact-names">${friend.name}</span></td>`;
+        cols += `<td><strong><span id="${chanId}_state" class="${state.toLowerCase()}">${state}</span></strong></td>`;
 
-      var newRow = $("<tr>");
-      var cols = "";
-
-      cols += `<th scope="row" class="text-left">
-        <input id="${chanId}" class="newSwitch" ${disableSwitch} data-pubkey="${friend.publicAddress}" type="checkbox" data-toggle="toggle" data-on="UP" data-off="ZZZ" data-onstyle="success" data-offstyle="secondary" aria-label="State">
-      </th>`;
-      cols += `<td class="text-right"><i class="fa fa-user"></i><span class="contact-names">${friend.name}</span></td>`;
-      cols += `<td><strong><span id="${chanId}_state" class="${state.toLowerCase()}">${state}</span></strong></td>`;
-
-      newRow.append(cols);
-      $("table.table-striped").append(newRow);
-      $('#'+chanId).bootstrapToggle(mystate);
-      return new Promise();
-    })
-    .then(() => {
-      $('.newSwitch').bootstrapToggle();
-      $('.newSwitch').on("change", async function(e) {
-        let state = ($(this).prop('checked') === true ? e.target.dataset.on : e.target.dataset.off)
-        await fdb.connections
-        .where("publicAddress")
-        .equals(e.target.dataset.pubkey)
-        .modify({myState: ($(this).prop('checked') === true ? "on" : "off")});
-        toggleState(e.target.id,state)
-        console.log(e);
+        newRow.append(cols);
+        $("table.table-striped").append(newRow);
+        $('#'+chanId).bootstrapToggle(mystate);
+        return new Promise();
       })
+      .then(() => {
+        $('.newSwitch').bootstrapToggle();
+        $('.newSwitch').on("change", async function(e) {
+          let state = ($(this).prop('checked') === true ? e.target.dataset.on : e.target.dataset.off)
+          await fdb.connections
+          .where("publicAddress")
+          .equals(e.target.dataset.pubkey)
+          .modify({myState: ($(this).prop('checked') === true ? "on" : "off")});
+          toggleState(e.target.id,state)
+          console.log(e);
+        })
+      })
+      .catch(function(error) {
+        alert ("Ooops: " + error);
+      });
+      const blob = await fdb.export(fdb, [{prettyJson: true}]);
     })
-    .catch(function(error) {
-      //
-      // Finally don't forget to catch any error
-      // that could have happened anywhere in the
-      // code blocks above.
-      //
-      alert ("Ooops: " + error);
-    });
-    
-    
-    const blob = await fdb.export(fdb, [{prettyJson: true}]);
+    .catch(function(error){
+      // window.document.location.href = "/my-account.html"
+      console.log(error)
+    })
   };
 
   let toggleState = async (chanId, state) => {
@@ -448,8 +438,14 @@
 //   }
 // }
 
-  $(document).ready(function(){
+  $(document).ready(async function(){
     render();
+    const isLoggedIn = await magic.user.isLoggedIn();
+
+    if (!isLoggedIn) {
+      window.document.location.href = "/"
+      // initialize database
+    }
     $(".newSwitch").on("click", e => {
       console.log(e.data("id"));
     })
@@ -458,17 +454,7 @@
       console.log(e);
     })
 
-    db.settings.get(1)
-    .then(function (user) {
-      if(user.name === undefined)
-        window.document.location.href = "/my-account.html"
-      document.getElementById("userName").innerHTML = user.name;
-      (user.image  !== undefined ? document.getElementById("avatarIcon").src = user.image : console.log('no image'));
-    })
-    .catch(function(error){
-      // window.document.location.href = "/my-account.html"
-      console.log(error)
-    }) 
+    
     
   });
 
