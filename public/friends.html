@@ -276,6 +276,7 @@
         .equals(message.data.from)
         .modify({friendState: message.data.state});
         document.getElementById(message.data.chanId+'_state').innerHTML = message.data.state;
+        alert(message.data.state+"!!")
       });
       console.log('connected')
     });
