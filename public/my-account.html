@@ -55,6 +55,14 @@
       <h1 class="mb-3 font-weight-normal">My Account</h1>
       
       <div class="form-group">
+        <div class="picture-container">
+          <div class="picture">
+              <img src="https://lh3.googleusercontent.com/LfmMVU71g-HKXTCP_QWlDOemmWg4Dn1rJjxeEsZKMNaQprgunDTtEuzmcwUBgupKQVTuP0vczT9bH32ywaF7h68mF-osUSBAeM6MxyhvJhG6HKZMTYjgEv3WkWCfLB7czfODidNQPdja99HMb4qhCY1uFS8X0OQOVGeuhdHy8ln7eyr-6MnkCcy64wl6S_S6ep9j7aJIIopZ9wxk7Iqm-gFjmBtg6KJVkBD0IA6BnS-XlIVpbqL5LYi62elCrbDgiaD6Oe8uluucbYeL1i9kgr4c1b_NBSNe6zFwj7vrju4Zdbax-GPHmiuirf2h86eKdRl7A5h8PXGrCDNIYMID-J7_KuHKqaM-I7W5yI00QDpG9x5q5xOQMgCy1bbu3St1paqt9KHrvNS_SCx-QJgBTOIWW6T0DHVlvV_9YF5UZpN7aV5a79xvN1Gdrc7spvSs82v6gta8AJHCgzNSWQw5QUR8EN_-cTPF6S-vifLa2KtRdRAV7q-CQvhMrbBCaEYY73bQcPZFd9XE7HIbHXwXYA=s200-no" class="picture-src" id="wizardPicturePreview" title="">
+              <input type="file" id="wizard-picture" class="">
+          </div>
+           <h6 class="">Choose Picture</h6>
+  
+      </div>
         <label for="inputName" class="sr-only">Your Name</label>
         <input id="inputName" type="text" class="form-control" aria-label="name" placeholder="Full Name" >
       </div>
@@ -76,8 +84,8 @@
   <script src="https://cdn.jsdelivr.net/gh/gitbrent/bootstrap4-toggle@3.6.1/js/bootstrap4-toggle.min.js"></script>
   <script>
     let db = new Dexie("users");
-    db.version(2).stores({
-        settings: 'id,name,email,uid,publicAddress'
+    db.version(1).stores({
+        settings: 'id,name,email,uid,publicAddress,image'
     });
     
     let fdb = new Dexie("na");
@@ -154,7 +162,7 @@
       document.getElementById("sbmt").disabled = true;
       db.settings.get({email:document.getElementById("inputEmail").value})
       .then(function (user) {
-        return db.settings.update(user.id,{name: document.getElementById("inputName").value})
+        return db.settings.update(user.id,{name: document.getElementById("inputName").value,image:document.getElementById("wizardPicturePreview").src})
       })
       .then (async function(){
         let did = await magic.user.getIdToken();
@@ -168,18 +176,32 @@
     }
 
 
+    function readURL(input) {
+      if (input.files && input.files[0]) {
+          var reader = new FileReader();
+
+          reader.onload = function (e) {
+              $('#wizardPicturePreview').attr('src', e.target.result);
+          }
+          reader.readAsDataURL(input.files[0]);
+      }
+    }
       /* 3️⃣ Implement Render Function */
       const render = async () => {
         const isLoggedIn = await magic.user.isLoggedIn();
-
+        $("#wizard-picture").change(function(){
+            readURL(this);
+        });
         if (isLoggedIn) {
           let did = await magic.user.getIdToken();
           const userMetadata = await magic.user.getMetadata();
           document.getElementById("inputEmail").value = userMetadata.email;
+          
 
           let userData = await getUser(did);
           if(!isEmpty(userData)){
             //todo: import database
+            document.getElementById("sbmt").disabled = false;
           } else {
             //write initial data to database
             db.open()
@@ -188,10 +210,14 @@
             })
             .then(function (user) {
               console.log(user)
-              if(user)
-                document.getElementById("inputName").value = user.name;
-              else
+              if(user){
+                document.getElementById("inputName").value = (user.name !== undefined ? user.name : "");
+                (user.image  !== undefined ? document.getElementById("wizardPicturePreview").src = user.image : console.log('no image'));
+              }
+              else{
                 db.settings.add({id:1,email: document.getElementById("inputEmail").value,uid:userMetadata.issuer,publicAddress:userMetadata.publicAddress})
+              }
+                
               document.getElementById("sbmt").disabled = false;
             }).catch(function(error) {
               console.log ("Ooops: " + error);

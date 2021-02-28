@@ -147,7 +147,7 @@
     });
 
     let db = new Dexie("users");
-    db.version(2).stores({
+    db.version(1).stores({
         settings: 'id,name,email,uid,publicAddress'
     });
 
@@ -218,10 +218,11 @@
         let html = `
         <form onsubmit="handleLogin(event)">
           <div style="width:180px;height:auto; margin: 0 auto 30px auto;"></div>
-          <h1 class="mb-3 font-weight-normal">Login</h1>
+          <h1 class="mb-3 font-weight-normal">Verify Email</h1>
+          <p><small>For security purposes, we need to verify your email address.</small></p>
           <label for="inputEmail" class="sr-only">Email address</label>
           <input name="email" type="email" id="inputEmail" class="form-control mb-3" placeholder="Email address" aria-label="email address" autofocus>
-          <button class="btn btn-lg btn-primary btn-block" type="submit">Start Chat</button>
+          <button class="btn btn-lg btn-primary btn-block" type="submit">Confirm Email</button>
         </form>
         `;
 
@@ -270,8 +271,11 @@
               console.log(user)
               if(user)
                 console.log(user)
-              else
-                db.settings.put({id:1,email: email,uid:userMetadata.issuer,publicAddress:userMetadata.publicAddress,name:"User"})
+              else{
+                db.settings.put({id:1,email: email,uid:userMetadata.issuer,publicAddress:userMetadata.publicAddress})
+                window.document.location.href = "/my-account.html"
+              }
+                
             }).catch(function(error) {
               console.log ("Ooops: " + error);
             });
@@ -280,6 +284,7 @@
           html = `
             <h1>Current user: ${userMetadata.email}</h1>
             <button><a href="/friends.html">Friends</a></button>
+            <button><a href="/my-account.html">Account</a></button>
             <button onclick="handleLogout()">Logout</button>
           `;
         }
