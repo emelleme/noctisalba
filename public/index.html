@@ -264,7 +264,7 @@
           // } else {
             //write initial data to database
             db.open()
-            .then(function(){
+            .then(async function(){
               return db.settings.get({email:userMetadata.email});
             })
             .then(function (user) {
