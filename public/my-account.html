@@ -211,6 +211,14 @@
           reader.readAsDataURL(input.files[0]);
       }
     }
+
+    let importUser = async (data) => {
+      const base64 = await fetch(data);
+      const blob = await base64.blob();
+      return await db.import(blob, [{overwriteValues:true}]);
+    }
+
+
       /* 3️⃣ Implement Render Function */
       const render = async () => {
         const isLoggedIn = await magic.user.isLoggedIn();
@@ -224,31 +232,36 @@
           document.getElementById("inputEmail").value = userMetadata.email;
           
 
-          let userData = await getUser(did);
-          if(!isEmpty(userData)){
-            //todo: import database
-            document.getElementById("sbmt").disabled = false;
-          } else {
-            //write initial data to database
-            db.open()
-            .then(function(){
-              return db.settings.get({email:userMetadata.email});
-            })
-            .then(function (user) {
-              console.log(user)
-              if(user){
-                document.getElementById("inputName").value = (user.name !== undefined ? user.name : "");
-                (user.image  !== undefined ? document.getElementById("wizardPicturePreview").src = user.image : console.log('no image'));
-              }
-              else{
+          
+          
+          db.open()
+          .then(function(){
+            return db.settings.get({email:userMetadata.email});
+          })
+          .then(async function (user) {
+            console.log(user)
+            if(user){
+              document.getElementById("inputName").value = (user.name !== undefined ? user.name : "");
+              (user.image  !== undefined ? document.getElementById("wizardPicturePreview").src = user.image : console.log('no image'));
+            }
+            else{
+              //write initial data to database
+              let userData = await getUser(did);
+              if(!isEmpty(userData)){
+                //todo: import database
+                
+                await importUser(userData);
+                document.getElementById("sbmt").disabled = false;
+              } else{
                 db.settings.add({id:1,email: document.getElementById("inputEmail").value,uid:userMetadata.issuer,publicAddress:userMetadata.publicAddress})
               }
-                
-              document.getElementById("sbmt").disabled = false;
-            }).catch(function(error) {
-              console.log ("Ooops: " + error);
-            });
-          }
+            }
+              
+            document.getElementById("sbmt").disabled = false;
+          }).catch(function(error) {
+            console.log ("Ooops: " + error);
+          });
+          
           $('#alertModal').modal('hide');
           
         }else{

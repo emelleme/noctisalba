@@ -195,120 +195,161 @@
         },
         body: JSON.stringify({code:invite,email:email})
       };
-    try {
-        const fetchResponse = await fetch(`https://api.noctis-alba.com/checkInvite`, init);
-        const resp = await fetchResponse.json();
-        if(resp.data.publicAddress !== undefined){
-          
-        }
-        // console.log(data);
-        return resp;
-    } catch (e) {
-        return e;
-    }
+      try {
+          const fetchResponse = await fetch(`https://api.noctis-alba.com/checkInvite`, init);
+          const resp = await fetchResponse.json();
+          if(resp.data.publicAddress !== undefined){
+            
+          }
+          // console.log(data);
+          return resp;
+      } catch (e) {
+          return e;
+      }
     }
 
 
     let magic = new Magic("pk_live_09D4E08E8CBA5F91");
-      /* 3️⃣ Implement Render Function */
-      const render = async () => {
-        const isLoggedIn = await magic.user.isLoggedIn();
+    /* 3️⃣ Implement Render Function */
+    const render = async () => {
+      const isLoggedIn = await magic.user.isLoggedIn();
 
-        /* Show login form if user is not logged in */
-        let html = `
-        <form onsubmit="handleLogin(event)">
-          <div style="width:180px;height:auto; margin: 0 auto 30px auto;"></div>
-          <h1 class="mb-3 font-weight-normal">Verify Email</h1>
-          <p><small>For security purposes, we need to verify your email address.</small></p>
-          <label for="inputEmail" class="sr-only">Email address</label>
-          <input name="email" type="email" id="inputEmail" class="form-control mb-3" placeholder="Email address" aria-label="email address" autofocus>
-          <button class="btn btn-lg btn-primary btn-block" type="submit">Confirm Email</button>
-        </form>
-        `;
+      /* Show login form if user is not logged in */
+      let html = `
+      <form onsubmit="handleLogin(event)">
+        <div style="width:180px;height:auto; margin: 0 auto 30px auto;"></div>
+        <h1 class="mb-3 font-weight-normal">Verify Email</h1>
+        <p><small>For security purposes, we need to verify your email address.</small></p>
+        <label for="inputEmail" class="sr-only">Email address</label>
+        <input name="email" type="email" id="inputEmail" class="form-control mb-3" placeholder="Email address" aria-label="email address" autofocus>
+        <button class="btn btn-lg btn-primary btn-block" type="submit">Confirm Email</button>
+      </form>
+      `;
 
-        if (isLoggedIn) {
-          /* Get user metadata including email */
-          // window.document.location.href = "/my-account.html"
-          const userMetadata = await magic.user.getMetadata();
-          const { email } = await magic.user.getMetadata();
-           //Check valid invite
-           if(invite !== null){
-            let validInvite = await checkInvite(invite,email);
-            if (validInvite.data !== false){
-              if(validInvite.data.inputEmail !== undefined){
-                if(validInvite.data.inputEmail === email){
-                  //save new user
-                  await fdb.connections.put({
-                    name: validInvite.data.invitedBy,
-                    publicAddress: validInvite.data.senderKey,
-                    friendState:"ZZZ",
-                    connectionState: "active"
-                  })
-                }
+      if (isLoggedIn) {
+        /* Get user metadata including email */
+        // window.document.location.href = "/my-account.html"
+        const userMetadata = await magic.user.getMetadata();
+        const { email } = await magic.user.getMetadata();
+          //Check valid invite
+          if(invite !== null){
+          let validInvite = await checkInvite(invite,email);
+          if (validInvite.data !== false){
+            if(validInvite.data.inputEmail !== undefined){
+              if(validInvite.data.inputEmail === email){
+                //save new user
+                await fdb.connections.put({
+                  name: validInvite.data.invitedBy,
+                  publicAddress: validInvite.data.senderKey,
+                  friendState:"ZZZ",
+                  connectionState: "active"
+                })
               }
-              
             }
-           }
-          let did = await magic.user.getIdToken();
-          function progressCallback ({totalRows, completedRows}) {
-            console.log(`Progress: ${completedRows} of ${totalRows} rows completed`);
+            
           }
-          let userData = await getUser(did);
-          // if(userData !== undefined){
-          //   console.log(userData)
-          //   //todo: import database
-          //   db = await Dexie.import(userData, {
-          //     progressCallback
-          //   });
-          //   console.log("Import complete");
-          // } else {
+          }
+        let did = await magic.user.getIdToken();
+        function progressCallback ({totalRows, completedRows}) {
+          console.log(`Progress: ${completedRows} of ${totalRows} rows completed`);
+        }
+        
+        //write initial data to database
+        db.open()
+        .then(function(){
+          return db.settings.get({email:userMetadata.email});
+        })
+        .then(function (user) {
+          console.log(user)
+          if(user)
+            console.log(user)
+          else{
             //write initial data to database
-            db.open()
-            .then(function(){
-              return db.settings.get({email:userMetadata.email});
-            })
-            .then(function (user) {
-              console.log(user)
-              if(user)
-                console.log(user)
-              else{
-                db.settings.put({id:1,email: email,uid:userMetadata.issuer,publicAddress:userMetadata.publicAddress})
-                window.document.location.href = "/my-account.html"
-              }
-                
-            }).catch(function(error) {
-              console.log ("Ooops: " + error);
-            });
-          // }
+            let userData = await getUser(did);
+            if(!isEmpty(userData)){
+              //todo: import database
+              await importUser(userData);
+            } else{
+              db.settings.add({id:1,email: email,uid:userMetadata.issuer,publicAddress:userMetadata.publicAddress})
+            }
+            // window.document.location.href = "/my-account.html"
+          }
+            
+        }).catch(function(error) {
+          console.log ("Ooops: " + error);
+        });
+        
 
-          html = `
-            <h1>Current user: ${userMetadata.email}</h1>
-            <button><a href="/friends.html">Friends</a></button>
-            <button><a href="/my-account.html">Account</a></button>
-            <button onclick="handleLogout()">Logout</button>
-          `;
-        }
+        html = `
+          <h1>Current user: ${userMetadata.email}</h1>
+          <button><a href="/friends.html">Friends</a></button>
+          <button><a href="/my-account.html">Account</a></button>
+          <button onclick="handleLogout()">Logout</button>
+        `;
+      }
 
-        document.getElementById("app").innerHTML = html;
-      };
-      /* 4️⃣ Implement Login Handler */
-      const handleLogin = async (e) => {
-        e.preventDefault();
-        const email = new FormData(e.target).get("email");
-        if (email) {
-          /* One-liner login 🤯 */
-          await magic.auth.loginWithMagicLink({ email });
-          render();
-        }
-      };
-
-      /* 5️⃣ Implement Logout Handler */
-      const handleLogout = async () => {
-        await db.delete();
-        await fdb.delete();
-        await invitedb.delete();
-        await magic.user.logout();
+      document.getElementById("app").innerHTML = html;
+    };
+    /* 4️⃣ Implement Login Handler */
+    const handleLogin = async (e) => {
+      e.preventDefault();
+      const email = new FormData(e.target).get("email");
+      if (email) {
+        /* One-liner login 🤯 */
+        await magic.auth.loginWithMagicLink({ email });
         render();
+      }
+    };
+
+    /* 5️⃣ Implement Logout Handler */
+    const handleLogout = async () => {
+      await db.delete();
+      await fdb.delete();
+      await invitedb.delete();
+      await magic.user.logout();
+      render();
+    };
+
+
+    let importUser = async (data) => {
+      const base64 = await fetch(data);
+      const blob = await base64.blob();
+      await db.import(blob, [{overwriteValues:true}]);
+    }
+
+    let importFriends = async (data) => {
+      const base64 = await fetch(data);
+      const blob = await base64.blob();
+      await fdb.import(blob, [{overwriteValues:true}]);
+    }
+
+
+    let getFriends = async (chanId,blob) => {
+      //
+      // Export to Blob
+      //
+      let reader = new FileReader();
+      reader.readAsDataURL(blob); 
+      reader.onloadend = async function() {
+        let base64data = reader.result;                
+        // console.log(base64data);
+        const init = {
+          method: 'GET',
+          headers: {
+            "Accept": "application/json",
+            "Content-Type": "application/json",
+            'X-Custom-DID': did
+          }
+        };
+        try {
+          const fetchResponse = await fetch(`https://api.noctis-alba.com/getFriends`, init);
+          const data = await fetchResponse.json();
+          return data;
+        } catch (e) {
+          return e;
+        }
+        return true;
       };
+    }
 	</script>
 </html>

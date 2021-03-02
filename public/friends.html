@@ -312,6 +312,7 @@
           document.getElementById(message.data.chanId+'_state').className = message.data.state.toLowerCase();
           document.getElementById("alertBox").innerHTML = friend.name + " is " + message.data.state + "!";
           $('#alertModal').modal('show');
+          await exportFriends();
           // alert(message.data.state+"!!")
         });
         console.log('connected')
@@ -369,7 +370,7 @@
       .catch(function(error) {
         alert ("Ooops: " + error);
       });
-      const blob = await fdb.export(fdb, [{prettyJson: true}]);
+      await exportFriends();
     })
     .catch(function(error){
       // window.document.location.href = "/my-account.html"
@@ -389,11 +390,19 @@
     });
   }
 
+  let importData = async (data) => {
+    const base64 = await fetch(data);
+    const blob = await base64.blob();
+    await importInto(fdb, blob, [{overwriteValues:true}]);
+  }
 
-  let exportData = async (chanId,blob) => {
+
+  let exportFriends = async () => {
     //
     // Export to Blob
     //
+    let did = await magic.user.getIdToken();
+    const blob = await fdb.export(fdb, [{prettyJson: true}]);
     let reader = new FileReader();
     reader.readAsDataURL(blob); 
     reader.onloadend = async function() {
@@ -409,7 +418,7 @@
         body: JSON.stringify({data:base64data})
       };
       try {
-        const fetchResponse = await fetch(`https://api.noctis-alba.com/saveDb`, init);
+        const fetchResponse = await fetch(`https://api.noctis-alba.com/syncFriends`, init);
         const data = await fetchResponse.json();
         console.log(data);
         if(data){
