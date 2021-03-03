@@ -289,7 +289,7 @@
         .then(function(){
           return db.settings.get({email:userMetadata.email});
         })
-        .then(function (user) {
+        .then(async function (user) {
           console.log(user)
           if(user)
             console.log(user)
