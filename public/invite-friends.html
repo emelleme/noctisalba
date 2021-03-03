@@ -42,7 +42,7 @@
 
 		  </div>
 		</div><!-- end sample wrap -->
-      </div><!-- end modal -->
+      </div><!-- end modal body -->
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" data-dismiss="modal">Close Sample Invite</button>
      
@@ -52,45 +52,46 @@
 </div>
 	<!-- End Modal -->
 	  <a class="" href="index.html"><img class="logo" src="images/NA-Logo.svg" alt="Noctis Alba Logo"></a>
-	  <nav class="navbar navbar-expand-md navbar-dark fixed-top">
-	
-  <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarCollapse" aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation">
-    <span class="navbar-toggler-icon"></span>
-  </button>
- <div class="collapse navbar-collapse" id="navbarCollapse">
-    <ul class="navbar-nav mr-auto">
-     <li class="nav-item">
-        <a class="nav-link" href="friends.html"><i class="fa fa-address-book"></i> Friends</a>
-      </li>
-		 <li class="nav-item">
-        <a class="nav-link" href="invite-friends.html"><i class="fa fa-envelope"></i> Invite<span class="sr-only">(current)</span></a>
-      </li> <li class="nav-item active">
-        <a class="nav-link" href="features.html"><i class="fa fa-star"></i> Features </a>
-      </li>
-      <li class="nav-item">
-        <a class="nav-link" href="about-us.html"><i class="fa fa-address-card"></i> About us</a>
-      </li>
-		<li class="nav-item">
-        <a class="nav-link" href="help.html"><i class="fa fa-question-circle"></i> Help</a>
-      </li>
-		    </ul>
-	    <ul class="navbar-nav ml-auto">
-				  <li class="nav-item dropdown">
-        <a class="nav-link dropdown-toggle" href="#" id="dropdown03" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><img src="images/avatar-icon.png" height="21" width="21" style="margin-right:5px">Your name here</a>
-        <div class="dropdown-menu dropdown-menu-right" aria-labelledby="dropdown03">
-          <a class="dropdown-item" href="settings.html#collapseSettings"><i class="fa fa-gear"></i> Settings</a>
-          <a class="dropdown-item" href="index.html"><i class="fa fa-sign-out"></i> Logout</a>
-        </div>
-  </li>
-</ul>
-  </div>
-</nav>
+    <nav class="navbar navbar-expand-md navbar-dark fixed-top">
+      <button class="navbar-toggler ml-auto" type="button" data-toggle="collapse" data-target="#navbarCollapse" aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarCollapse">
+        <ul class="navbar-nav mr-auto">
+        <li class="nav-item">
+            <a class="nav-link" href="friends.html"><i class="fa fa-address-book"></i> Friends<span class="sr-only">(current)</span></a>
+          </li>
+        <li class="nav-item active">
+            <a class="nav-link" href="invite-friends.html"><i class="fa fa-envelope"></i> Invite </a>
+          </li> <li class="nav-item ">
+            <a class="nav-link " href="features.html"><i class="fa fa-star"></i> Features </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="about-us.html"><i class="fa fa-address-card"></i> About us</a>
+          </li>
+        <li class="nav-item">
+            <a class="nav-link" href="help.html"><i class="fa fa-question-circle"></i> Help</a>
+          </li>
+            </ul>
+          <ul class="navbar-nav ml-auto">
+              <li class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle" href="#" id="dropdown03" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+              <img src="images/avatar-icon.png" id="avatarIcon" height="21" width="21" style="margin-right:5px">
+              <span id="userName">Your name here</span></a>
+            <div class="dropdown-menu dropdown-menu-right" aria-labelledby="dropdown03">
+              <a class="dropdown-item" href="my-account.html"><i class="fa fa-gear"></i> Settings</a>
+              <a class="dropdown-item" href="index.html"><i class="fa fa-sign-out"></i> Logout</a>
+            </div>
+          </li>
+        </ul>
+      </div>
+    </nav>
 
 <div class="hidden-sm-down shape-diamond-bg"><div id="shape-diamond"></div></div>
 	
 <form class="form-signin" onsubmit="sendInvite(event)" method="post">
-	<h1 class="mb-3 font-weight-normal"><p style="color:white;">Invite Friends</p></h1>
-<p><a id="font18" href="#" class="text-white" data-toggle="modal" data-target="#sampleInviteModal"><i>View sample invite</i></a><br />
+<h1 class="mb-3 font-weight-normal">Invite Your Friends</h1>
+<p><a id="font18" href="#" class="text-white" data-toggle="modal" data-target="#sampleInviteModal"><i class="fas fa-external-link-alt"></i> View sample invite</a><br />
 	<!-- trigger for modal -->
 </p>
 <div class="form-group">
@@ -130,13 +131,7 @@
 
   let fdb = new Dexie("na");
   fdb.version(2).stores({
-      connections: '++id,uid,name,email,myState,
-	  
-	  
-	  
-	  
-	  
-	  tate,connectionState,inviteCode,*publicAddress'
+      connections: '++id,uid,name,email,myState,friendState,connectionState,inviteCode,*publicAddress'
   });
   function makeid(length) {
     var result           = '';
@@ -199,7 +194,6 @@
     try {
       const fetchResponse = await fetch(`https://api.noctis-alba.com/inviteFriend`, settings);
       const data = await fetchResponse.json();
-      console.log(data);
       if(data.success === true){
         //Save user to database
         fdb.connections.add({
