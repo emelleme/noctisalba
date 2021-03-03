@@ -26,9 +26,14 @@
   <button class="navbar-toggler ml-auto" type="button" data-toggle="collapse" data-target="#navbarCollapse" aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation">
     <span class="navbar-toggler-icon"></span>
   </button>
-  <div class="collapse navbar-collapse" id="navbarCollapse">
+ <div class="collapse navbar-collapse" id="navbarCollapse">
     <ul class="navbar-nav mr-auto">
-            <li class="nav-item">
+     <li class="nav-item">
+        <a class="nav-link" href="friends.html"><i class="fa fa-address-book"></i> Friends</a>
+      </li>
+		 <li class="nav-item">
+        <a class="nav-link" href="invite-friends.html"><i class="fa fa-envelope"></i> Invite</a>
+      </li> <li class="nav-item active">
         <a class="nav-link" href="features.html"><i class="fa fa-star"></i> Features <span class="sr-only">(current)</span></a>
       </li>
       <li class="nav-item">
@@ -37,31 +42,13 @@
 		<li class="nav-item">
         <a class="nav-link" href="help.html"><i class="fa fa-question-circle"></i> Help</a>
       </li>
-		 <li class="nav-item">
-        <a class="nav-link" href="friends.html"><i class="fa fa-address-book"></i> Friends</a>
-      </li>
-		 <li class="nav-item">
-        <a class="nav-link" href="invite-friends.html"><i class="fa fa-envelope"></i> Invite</a>
-      </li>
-
-      <!--<li class="nav-item">
-        <a class="nav-link disabled" href="#" tabindex="-1" aria-disabled="true">Disabled</a>
-      </li>
-
-    <form class="form-inline mt-2 mt-md-0">
-      <input class="form-control mr-sm-2" type="text" placeholder="Search" aria-label="Search">
-      <button class="btn btn-outline-success my-2 my-sm-0" type="submit">Search</button>
-    </form>-->
 		    </ul>
-
-    <ul class="navbar-nav ml-auto">
-      <li class="nav-item dropdown">
-        <a class="nav-link dropdown-toggle" href="#" id="dropdown03" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-        <img id="avatarIcon" src="images/avatar-icon.png" height="21" width="21" style="margin-right:5px"> 
-        <span id="userName"></a>
+	    <ul class="navbar-nav ml-auto">
+				  <li class="nav-item dropdown">
+        <a class="nav-link dropdown-toggle" href="#" id="dropdown03" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><img src="images/avatar-icon.png" height="21" width="21" style="margin-right:5px">Your name here</a>
         <div class="dropdown-menu dropdown-menu-right" aria-labelledby="dropdown03">
-        <a class="dropdown-item" href="my-account.html"><i class="fa fa-gear"></i> Settings</a>
-        <a class="dropdown-item" onclick="handleLogout()"><i class="fa fa-sign-out"></i> Logout</a>
+          <a class="dropdown-item" href="settings.html#collapseSettings"><i class="fa fa-gear"></i> Settings</a>
+          <a class="dropdown-item" href="index.html"><i class="fa fa-sign-out"></i> Logout</a>
         </div>
       </li>
     </ul>
@@ -71,7 +58,7 @@
 
 <div class="container">
 <h1 class="text-left">Friends</h1>
-<p class="text-left">See whose up and whose ready to connect. You can also choose who you allow to sees if you are up or not. After 30 min of inactivity the site will automatically show you as asleep.</p>
+<p class="text-left">See whose up and whose ready to connect. You can also choose who you allow to sees if you are up or not. <b> After 30 min of inactivity the site will automatically show you as asleep.</p>
 
 <p class="text-left text-uppercase"><a href="invite-friends.html"><i class="fa fa-plus-circle" aria-hidden="true" style="margin-right:8px"></i>Invite Friends</a></p>
 
@@ -112,9 +99,9 @@
 <table class="table table-striped">
   <thead>
     <tr>
-      <th width="17%" scope="col" class="text-left">My Status (What my friend sees)</th>
-      <th width="69%" scope="col" class="text-right">Friends Name</th>
-      <th width="14%" scope="col" class="text-left"><span id="text">My Friends Status</span></th>
+      <th width="45%" scope="col" class="text-left">My Status<small> (What your friend sees)</small></th>
+      <th width="30%" scope="col" class="text-right">Friends Name</th>
+      <th width="45%" scope="col" class="text-left"><span id="text">My Friends Status</span></th>
     </tr>
   </thead>
   <tbody>
