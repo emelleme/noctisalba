@@ -242,6 +242,8 @@
           .then(async function (user) {
             console.log(user)
             if(user){
+              document.getElementById("userName").innerHTML = user.name;
+              (user.image  !== undefined ? document.getElementById("avatarIcon").src = user.image : console.log('no image'));
               document.getElementById("inputName").value = (user.name !== undefined ? user.name : "");
               (user.image  !== undefined ? document.getElementById("wizardPicturePreview").src = user.image : console.log('no image'));
             }
