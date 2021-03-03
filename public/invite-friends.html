@@ -57,9 +57,14 @@
   <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarCollapse" aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation">
     <span class="navbar-toggler-icon"></span>
   </button>
-  <div class="collapse navbar-collapse" id="navbarCollapse">
+ <div class="collapse navbar-collapse" id="navbarCollapse">
     <ul class="navbar-nav mr-auto">
-           <li class="nav-item">
+     <li class="nav-item">
+        <a class="nav-link" href="friends.html"><i class="fa fa-address-book"></i> Friends</a>
+      </li>
+		 <li class="nav-item">
+        <a class="nav-link" href="invite-friends.html"><i class="fa fa-envelope"></i> Invite</a>
+      </li> <li class="nav-item active">
         <a class="nav-link" href="features.html"><i class="fa fa-star"></i> Features <span class="sr-only">(current)</span></a>
       </li>
       <li class="nav-item">
@@ -68,31 +73,14 @@
 		<li class="nav-item">
         <a class="nav-link" href="help.html"><i class="fa fa-question-circle"></i> Help</a>
       </li>
-		 <li class="nav-item">
-        <a class="nav-link" href="friends.html"><i class="fa fa-address-book"></i> Friends</a>
-      </li>
-		 <li class="nav-item active">
-        <a class="nav-link" href="invite-friends.html"><i class="fa fa-envelope"></i> Invite</a>
-      </li>
-
-      <!--<li class="nav-item">
-        <a class="nav-link disabled" href="#" tabindex="-1" aria-disabled="true">Disabled</a>
-      </li>
-
-    <form class="form-inline mt-2 mt-md-0">
-      <input class="form-control mr-sm-2" type="text" placeholder="Search" aria-label="Search">
-      <button class="btn btn-outline-success my-2 my-sm-0" type="submit">Search</button>
-    </form>-->
-</ul>
-<ul class="navbar-nav ml-auto">
-  <li class="nav-item dropdown">
-    <a class="nav-link dropdown-toggle" href="#" id="dropdown03" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-    <img id="avatarIcon" src="images/avatar-icon.png" height="21" width="21" style="margin-right:5px"> 
-    <span id="userName"></a>
-    <div class="dropdown-menu dropdown-menu-right" aria-labelledby="dropdown03">
-    <a class="dropdown-item" href="my-account.html"><i class="fa fa-gear"></i> Settings</a>
-    <a class="dropdown-item" onclick="handleLogout()"><i class="fa fa-sign-out"></i> Logout</a>
-    </div>
+		    </ul>
+	    <ul class="navbar-nav ml-auto">
+				  <li class="nav-item dropdown">
+        <a class="nav-link dropdown-toggle" href="#" id="dropdown03" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><img src="images/avatar-icon.png" height="21" width="21" style="margin-right:5px">Your name here</a>
+        <div class="dropdown-menu dropdown-menu-right" aria-labelledby="dropdown03">
+          <a class="dropdown-item" href="settings.html#collapseSettings"><i class="fa fa-gear"></i> Settings</a>
+          <a class="dropdown-item" href="index.html"><i class="fa fa-sign-out"></i> Logout</a>
+        </div>
   </li>
 </ul>
   </div>
@@ -102,7 +90,7 @@
 	
 <form class="form-signin" onsubmit="sendInvite(event)" method="post">
 <h1 class="mb-3 font-weight-normal">Invite Your Friends</h1>
-<p><a id="font18" href="#" class="text-white" data-toggle="modal" data-target="#sampleInviteModal"><i class="fas fa-external-link-alt"></i> View sample invite</a><br />
+<p><a id="font18" href="#" class="text-white" data-toggle="modal" data-target="#sampleInviteModal"><i>View sample invite</i></a><br />
 	<!-- trigger for modal -->
 </p>
 <div class="form-group">
@@ -141,7 +129,13 @@
 
   let fdb = new Dexie("na");
   fdb.version(2).stores({
-      connections: '++id,uid,name,email,myState,friendState,connectionState,inviteCode,*publicAddress'
+      connections: '++id,uid,name,email,myState,
+	  
+	  
+	  
+	  
+	  
+	  tate,connectionState,inviteCode,*publicAddress'
   });
   function makeid(length) {
     var result           = '';
