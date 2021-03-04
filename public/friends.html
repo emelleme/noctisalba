@@ -309,6 +309,162 @@
         console.log('connected')
       });
 
+      
+      // await exportFriends();
+    })
+    .catch(function(error){
+      // window.document.location.href = "/my-account.html"
+      console.log(error)
+    })
+  };
+
+  let toggleState = async (chanId, state) => {
+    let {publicAddress} = await magic.user.getMetadata();
+    var channel = ably.channels.get("chan:"+chanId);
+    channel.publish("stateChange",{ "from":publicAddress, "chanId":publicAddress.substr(publicAddress.length - 6), "state": state }, (err)=>{
+      if(err) {
+        console.log('Unable to publish message; err = ' + err.message);
+      } else {
+        console.log('Message successfully sent');
+      }
+    });
+  }
+
+  let importData = async (data) => {
+    const base64 = await fetch(data);
+    const blob = await base64.blob();
+    await importInto(fdb, blob, [{overwriteValues:true}]);
+  }
+
+
+  let exportFriends = async () => {
+    //
+    // Export to Blob
+    //
+    let did = await magic.user.getIdToken();
+    const blob = await fdb.export(fdb, [{prettyJson: true}]);
+    let reader = new FileReader();
+    console.log(blob)
+    reader.readAsDataURL(blob); 
+    reader.onloadend = async function() {
+      let base64data = reader.result;                
+      // console.log(base64data);
+      const init = {
+        method: 'POST',
+        headers: {
+          "Accept": "application/json",
+          "Content-Type": "application/json",
+          'X-Custom-DID': did
+        },
+        body: JSON.stringify({data:base64data})
+      };
+      try {
+        const fetchResponse = await fetch(`https://api.noctis-alba.com/syncFriends`, init);
+        const data = await fetchResponse.json();
+        console.log(data);
+        if(data){
+          
+          
+        }else{
+          //something went wrong. todo: add error message
+        }
+      } catch (e) {
+        return e;
+      }
+      return true;
+    };
+  }
+
+  let getFriends = async () => {
+    //
+    // Export to Blob
+    //
+    let did = await magic.user.getIdToken();
+    const blob = await fdb.export(fdb, [{prettyJson: true}]);
+    let reader = new FileReader();
+    reader.readAsDataURL(blob); 
+    reader.onloadend = async function() {
+      let base64data = reader.result;                
+      // console.log(base64data);
+      const init = {
+        method: 'GET',
+        headers: {
+          "Content-Type": "text/plain",
+          'X-Custom-DID': did
+        }
+      };
+      try {
+        const fetchResponse = await fetch(`https://api.noctis-alba.com/getFriends`, init);
+        const data = await fetchResponse.blob();
+        console.log(data.size);
+        if(data.size > 20){
+          let tt = await data.text();
+          const importData = atob(tt.substring(22,tt.length));
+          const bytes = new TextEncoder().encode(importData);
+          const blob = new Blob([bytes]);
+          const b2f = blobToFile(blob);
+          console.log(b2f)
+          const imp = await fdb.import(b2f);
+          console.log(imp)
+          
+        }else{
+          //something went wrong. todo: add error message
+        }
+      } catch (e) {
+        return e;
+      }
+      return true;
+    };
+  }
+
+  function blobToFile(theBlob){
+      //A Blob() is almost a File() - it's just missing the two properties below which we will add
+      theBlob.lastModifiedDate = new Date();
+      theBlob.name = 'temp-file.json';
+      return theBlob;
+  }
+// function myFunction() {
+//   // Get the checkbox
+//   var checkBox = document.getElementById("myCheck");
+//   // Get the output text
+//   var text = document.getElementById("text");
+
+//   // If the checkbox is checked, display the output text
+//   if (checkBox.checked == true){
+//     text.style.display = "Up";
+//   } else {
+//     text.style.display = "none";
+//   }
+// }
+  $(document).ready(async function(){
+    
+    render();
+    const isLoggedIn = await magic.user.isLoggedIn();
+
+    if (!isLoggedIn) {
+      window.document.location.href = "/"
+      // initialize database
+      
+    }
+    loadFriends();
+    $(".newSwitch").on("click", e => {
+      console.log(e.data("id"));
+    })
+
+    $('.newSwitch').change(function(e) {
+      console.log(e);
+    })
+
+    
+    
+  });
+
+  const loadFriends = async () => {
+    //
+      // Load Friends
+      //
+      let friends = getFriends();
+
       //
       // Check invites
       //
@@ -361,102 +517,7 @@
       .catch(function(error) {
         alert ("Ooops: " + error);
       });
-      await exportFriends();
-    })
-    .catch(function(error){
-      // window.document.location.href = "/my-account.html"
-      console.log(error)
-    })
-  };
-
-  let toggleState = async (chanId, state) => {
-    let {publicAddress} = await magic.user.getMetadata();
-    var channel = ably.channels.get("chan:"+chanId);
-    channel.publish("stateChange",{ "from":publicAddress, "chanId":publicAddress.substr(publicAddress.length - 6), "state": state }, (err)=>{
-      if(err) {
-        console.log('Unable to publish message; err = ' + err.message);
-      } else {
-        console.log('Message successfully sent');
-      }
-    });
   }
-
-  let importData = async (data) => {
-    const base64 = await fetch(data);
-    const blob = await base64.blob();
-    await importInto(fdb, blob, [{overwriteValues:true}]);
-  }
-
-
-  let exportFriends = async () => {
-    //
-    // Export to Blob
-    //
-    let did = await magic.user.getIdToken();
-    const blob = await fdb.export(fdb, [{prettyJson: true}]);
-    let reader = new FileReader();
-    reader.readAsDataURL(blob); 
-    reader.onloadend = async function() {
-      let base64data = reader.result;                
-      // console.log(base64data);
-      const init = {
-        method: 'POST',
-        headers: {
-          "Accept": "application/json",
-          "Content-Type": "application/json",
-          'X-Custom-DID': did
-        },
-        body: JSON.stringify({data:base64data})
-      };
-      try {
-        const fetchResponse = await fetch(`https://api.noctis-alba.com/syncFriends`, init);
-        const data = await fetchResponse.json();
-        console.log(data);
-        if(data){
-          
-          
-        }else{
-          //something went wrong. todo: add error message
-        }
-      } catch (e) {
-        return e;
-      }
-      return true;
-    };
-  }
-// function myFunction() {
-//   // Get the checkbox
-//   var checkBox = document.getElementById("myCheck");
-//   // Get the output text
-//   var text = document.getElementById("text");
-
-//   // If the checkbox is checked, display the output text
-//   if (checkBox.checked == true){
-//     text.style.display = "Up";
-//   } else {
-//     text.style.display = "none";
-//   }
-// }
-  $(document).ready(async function(){
-    
-    render();
-    const isLoggedIn = await magic.user.isLoggedIn();
-
-    if (!isLoggedIn) {
-      window.document.location.href = "/"
-      // initialize database
-    }
-    $(".newSwitch").on("click", e => {
-      console.log(e.data("id"));
-    })
-
-    $('.newSwitch').change(function(e) {
-      console.log(e);
-    })
-
-    
-    
-  });
 
   /* 5️⃣ Implement Logout Handler */
   const handleLogout = async () => {
