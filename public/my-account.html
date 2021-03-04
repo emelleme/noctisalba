@@ -20,7 +20,7 @@
   <body id="create-account" class="text-center">
 <a class="" href="index.html"><img class="logo" src="images/NA-Logo.svg" alt="Noctis Alba Logo"></a>
 <nav class="navbar navbar-expand-md navbar-dark fixed-top">
-  <span class="navbar-brand"></span>
+  
   <button class="navbar-toggler ml-auto" type="button" data-toggle="collapse" data-target="#navbarCollapse" aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation">
     <span class="navbar-toggler-icon"></span>
   </button>
@@ -31,7 +31,7 @@
       </li>
     <li class="nav-item">
         <a class="nav-link" href="invite-friends.html"><i class="fa fa-envelope"></i> Invite </a>
-      </li> <li class="nav-item active">
+      </li> <li class="nav-item">
         <a class="nav-link " href="features.html"><i class="fa fa-star"></i> Features </a>
       </li>
       <li class="nav-item">
@@ -127,25 +127,6 @@
         return Object.keys(obj).length === 0;
     }
 
-    let getUser = async (did) => {
-      const settings = {
-          method: 'GET',
-          headers: {
-              "Accept": "application/json",
-              "Content-Type": "application/json",
-              "X-Custom-DID": did
-          }
-      };
-      try {
-          const fetchResponse = await fetch(`https://api.noctis-alba.com/getUser`, settings);
-          const data = await fetchResponse.json();
-          console.log(data);
-          return data;
-      } catch (e) {
-          return e;
-      }
-    }
-
     let syncUser = async (did,blob) => {
       //
       // Export to Blob
@@ -219,6 +200,50 @@
       return await db.import(blob, [{overwriteValues:true}]);
     }
 
+    function blobToFile(theBlob){
+      //A Blob() is almost a File() - it's just missing the two properties below which we will add
+      theBlob.lastModifiedDate = new Date();
+      theBlob.name = 'temp-file.json';
+      return theBlob;
+    }
+
+    let getUser = async () => {
+    //
+    // Load User data from database
+    //
+    let did = await magic.user.getIdToken();
+    
+      const init = {
+        method: 'GET',
+        headers: {
+          "Content-Type": "text/plain",
+          'X-Custom-DID': did
+        }
+      };
+      try {
+        const fetchResponse = await fetch(`https://api.noctis-alba.com/getUser`, init);
+        const data = await fetchResponse.blob();
+        console.log(data.size);
+        if(data.size > 20){
+          let tt = await data.text();
+          const importData = atob(tt.substring(22,tt.length));
+          const bytes = new TextEncoder().encode(importData);
+          const blob = new Blob([bytes]);
+          const b2f = blobToFile(blob);
+          console.log(b2f)
+          const imp = await db.import(b2f);
+          console.log(imp)
+          return true;
+        }else{
+          //something went wrong. todo: add error message
+          return false
+        }
+      } catch (e) {
+        return e;
+      }
+      return false;
+  }
+
 
       /* 3️⃣ Implement Render Function */
       const render = async () => {
@@ -241,24 +266,29 @@
           })
           .then(async function (user) {
             console.log(user)
-            if(user){
-              document.getElementById("userName").innerHTML = user.name;
-              (user.image  !== undefined ? document.getElementById("avatarIcon").src = user.image : console.log('no image'));
+            if(user !== undefined){
+              if(user.name !== undefined)
+                document.getElementById("userName").innerHTML = user.name;
               document.getElementById("inputName").value = (user.name !== undefined ? user.name : "");
+              (user.image  !== undefined ? document.getElementById("avatarIcon").src = user.image : console.log('no image'));
               (user.image  !== undefined ? document.getElementById("wizardPicturePreview").src = user.image : console.log('no image'));
             }
             else{
               //write initial data to database
               let userData = await getUser(did);
-              if(!isEmpty(userData)){
-                //todo: import database
-                
-                await importUser(userData);
+              if(userData){
                 document.getElementById("sbmt").disabled = false;
+                let user = await db.settings.get({email:userMetadata.email});
+                if(user.name !== undefined)
+                  document.getElementById("userName").innerHTML = user.name;
+                document.getElementById("inputName").value = (user.name !== undefined ? user.name : "");
+                (user.image  !== undefined ? document.getElementById("avatarIcon").src = user.image : console.log('no image'));
+                (user.image  !== undefined ? document.getElementById("wizardPicturePreview").src = user.image : console.log('no image'));
               } else{
                 db.settings.add({id:1,email: document.getElementById("inputEmail").value,uid:userMetadata.issuer,publicAddress:userMetadata.publicAddress})
               }
             }
+            
               
             document.getElementById("sbmt").disabled = false;
           }).catch(function(error) {

@@ -298,15 +298,8 @@
           if(user)
             console.log(user)
           else{
-            //write initial data to database
-            let userData = await getUser(did);
-            if(!isEmpty(userData)){
-              //todo: import database
-              await importUser(userData);
-            } else{
-              db.settings.add({id:1,email: email,uid:userMetadata.issuer,publicAddress:userMetadata.publicAddress})
-            }
-            // window.document.location.href = "/my-account.html"
+            
+            window.document.location.href = "/my-account.html"
           }
             
         }).catch(function(error) {
