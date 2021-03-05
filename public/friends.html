@@ -197,6 +197,31 @@
     </div>
   </div>
 </div>
+
+<div class="modal fade" id="inviteModal" tabindex="-1" role="dialog" aria-labelledby="AlertLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="AlertLabel">Invite accepted!</h5>
+        
+      
+      </div>
+      <div class="modal-body">
+      <!-- alert -->
+       <div id="inviteBox" class="alert alert-success text-left">
+   <!-- <button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button> -->
+            Your invite was accepted!
+        </div>
+        <!-- end alert -->
+      
+      </div><!-- end modal body -->
+      <div class="modal-footer">
+        <button type="button" class="btn btn-primary" onclick="closeModal()">Ok!</button>
+      </div>
+    
+    </div>
+  </div>
+</div>
 </body>
 <script src="https://cdn.jsdelivr.net/npm/magic-sdk/dist/magic.js"></script>
 <script src="https://unpkg.com/dexie@latest/dist/dexie.js"></script>
@@ -272,6 +297,8 @@
           .modify({publicAddress: data.data.publicAddress,connectionState:"ZZZ"})
           // await invitedb.incoming.delete(1);
           return true;
+        }else{
+          return false;
         }
         // .then( async (result) => {
         //   await invitedb.incoming.delete(1);
@@ -294,7 +321,7 @@
         return false;
       }
     } catch (e) {
-      return e;
+      return false;
     }
   }
 
@@ -471,6 +498,11 @@
 //   }
 // }
   $(document).ready(async function(){
+
+    $('#inviteModal').on('hide.bs.modal', function (e) {
+      // do something...
+      location.reload();
+    })
     $('#loadingModal').modal('show');
     
     const isLoggedIn = await magic.user.isLoggedIn();
@@ -496,27 +528,8 @@
     
   });
 
-  const loadFriends = async () => {
+  const displayFriends = async () => {
     //
-      // Load Friends
-      //
-      let friends = await getFriends();
-
-      //
-      // Check invites
-      //
-      invites = await fdb.connections.where("connectionState").equals("pending").toArray()
-      if(invites.length > 0){
-        invites.forEach(async (invite) => {
-          await checkInvites(invite);
-        })
-        await exportFriends();
-      }
-      
-      
-        
-      // console.log(await fdb.connections.where("connectionState").notEqual("blocked"))
-      //
       // Get friends
       //
       fdb.connections.where("connectionState").notEqual("blocked")
@@ -561,6 +574,38 @@
       .catch(function(error) {
         alert ("Ooops: " + error);
       });
+  }
+
+  const loadFriends = async () => {
+    //
+      // Load Friends
+      //
+      let friends = await getFriends();
+
+      //
+      // Check invites
+      //
+      invites = await fdb.connections.where("connectionState").equals("pending").toArray()
+      if(invites.length > 0){
+        let iv = false;
+        await invites.forEach(async (invite) => {
+          iv = await checkInvites(invite);
+          console.log(iv)
+          if(iv){
+            await exportFriends();
+            $("#inviteModal").modal('show');
+            $('#loadingModal').modal('hide');
+          }
+            
+        })
+      }else{
+        await displayFriends();
+      }
+      
+      
+        
+      // console.log(await fdb.connections.where("connectionState").notEqual("blocked"))
+      
   }
 
   /* 5️⃣ Implement Logout Handler */

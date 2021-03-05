@@ -239,23 +239,30 @@
       };
     }
 
+    const checkLogin = async () => {
+      return await magic.user.isLoggedIn();
+    }
     $(document).ready( async function(){
-      let friends = await getFriends();
-      if(!friends){
-        console.log("no friends");
-        // no saved friends
-        //check local friends database and upload if has data. (likely an invited user if first time)
-        let ff = await fdb.connections.get(1);
-        if(ff){
-          //export friends
+      const isLoggedIn = await checkLogin()
+      if(isLoggedIn){
+        let friends = await getFriends();
+        if(!friends){
+          console.log("no friends");
+          // no saved friends
+          //check local friends database and upload if has data. (likely an invited user if first time)
+          let ff = await fdb.connections.get(1);
+          if(ff){
+            //export friends
+            await exportFriends();
+          }
+        }else{
+          // Already have friends saved; add new invite if available and sync
+          console.log("friends found");
+          let invited = await handleInvite();
           await exportFriends();
         }
-      }else{
-        // Already have friends saved; add new invite if available and sync
-        console.log("friends found");
-        let invited = await handleInvite();
-        await exportFriends();
       }
+      
       render();
       let invCount = 0;
      
@@ -342,8 +349,6 @@
     
     /* 3️⃣ Implement Render Function */
     const render = async () => {
-      const isLoggedIn = await magic.user.isLoggedIn();
-
       /* Show login form if user is not logged in */
       let html = `
       <form onsubmit="handleLogin(event)">
@@ -355,7 +360,7 @@
         <button class="btn btn-lg btn-primary btn-block" type="submit">Confirm Email</button>
       </form>
       `;
-
+      const isLoggedIn = await checkLogin();
       if (isLoggedIn) {
         /* Get user metadata including email */
         // window.document.location.href = "/my-account.html"
