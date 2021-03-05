@@ -269,7 +269,7 @@
           await fdb.connections
           .where("inviteCode")
           .equals(data.data.inviteCode)
-          .modify({publicAddress: data.data.publicAddress,connectionState:"UP"})
+          .modify({publicAddress: data.data.publicAddress,connectionState:"ZZZ"})
           // await invitedb.incoming.delete(1);
           return true;
         }
@@ -515,7 +515,7 @@
       
       
         
-          
+      // console.log(await fdb.connections.where("connectionState").notEqual("blocked"))
       //
       // Get friends
       //

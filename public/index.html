@@ -142,6 +142,7 @@
 
   <script src="https://cdn.jsdelivr.net/gh/gitbrent/bootstrap4-toggle@3.6.1/js/bootstrap4-toggle.min.js"></script>
 	<script>
+    let magic = new Magic("pk_live_09D4E08E8CBA5F91");
     const urlParams = new URLSearchParams(window.location.search);
     const invite = urlParams.get('acceptInvite');
     console.log(invite)
@@ -160,7 +161,101 @@
         connections: '++id,uid,name,email,myState,friendState,connectionState,inviteCode,*publicAddress'
     });
 
+    let getFriends = async () => {
+    //
+    // Export to Blob
+    //
+    let did = await magic.user.getIdToken();
+               
+      // console.log(base64data);
+      
+      try {
+        const init = {
+          method: 'GET',
+          headers: {
+            "Content-Type": "text/plain",
+            'X-Custom-DID': did
+          }
+        };
+        const fetchResponse = await fetch(`https://api.noctis-alba.com/getFriends`, init);
+        const data = await fetchResponse.blob();
+        console.log(data.size);
+        if(data.size > 20){
+          let tt = await data.text();
+          const importData = atob(tt.substring(22,tt.length));
+          const bytes = new TextEncoder().encode(importData);
+          const blob = new Blob([bytes]);
+          const b2f = blobToFile(blob);
+          console.log(b2f)
+          const imp = await fdb.import(b2f,{overwriteValues:true});
+          console.log(imp)
+          return true;
+        }else{
+          console.log(data);
+          //something went wrong. todo: add error message
+          return false
+        }
+      } catch (e) {
+        console.log(e)
+        return false;
+      }
+  }
+
+    let exportFriends = async () => {
+      //
+      // Export to Blob
+      //
+      let did = await magic.user.getIdToken();
+      const blob = await fdb.export(fdb, [{prettyJson: true}]);
+      let reader = new FileReader();
+      console.log(blob)
+      reader.readAsDataURL(blob); 
+      reader.onloadend = async function() {
+        let base64data = reader.result;                
+        // console.log(base64data);
+        const init = {
+          method: 'POST',
+          headers: {
+            "Accept": "application/json",
+            "Content-Type": "application/json",
+            'X-Custom-DID': did
+          },
+          body: JSON.stringify({data:base64data})
+        };
+        try {
+          const fetchResponse = await fetch(`https://api.noctis-alba.com/syncFriends`, init);
+          const data = await fetchResponse.json();
+          console.log(data);
+          if(data){
+            
+            
+          }else{
+            //something went wrong. todo: add error message
+          }
+        } catch (e) {
+          return e;
+        }
+        return true;
+      };
+    }
+
     $(document).ready( async function(){
+      let friends = await getFriends();
+      if(!friends){
+        console.log("no friends");
+        // no saved friends
+        //check local friends database and upload if has data. (likely an invited user if first time)
+        let ff = await fdb.connections.get(1);
+        if(ff){
+          //export friends
+          await exportFriends();
+        }
+      }else{
+        // Already have friends saved; add new invite if available and sync
+        console.log("friends found");
+        let invited = await handleInvite();
+        await exportFriends();
+      }
       render();
       let invCount = 0;
      
@@ -212,8 +307,39 @@
       }
     }
 
+    let handleInvite = async () => {
+      //Check valid invite
+      if(invite !== null){
+        const { email } = await magic.user.getMetadata();
+        let validInvite = await checkInvite(invite,email);
+        if (validInvite.data !== false){
+          if(validInvite.data.inputEmail !== undefined){
+            if(validInvite.data.inputEmail === email){
+              //save new user
+              await fdb.connections.put({
+                name: validInvite.data.invitedBy,
+                publicAddress: validInvite.data.senderKey,
+                friendState:"ZZZ",
+                connectionState: "active"
+              })
+              return true;
+            }
+          }
+        }
+      }
+      return false;
+      
+    }
 
-    let magic = new Magic("pk_live_09D4E08E8CBA5F91");
+    function blobToFile(theBlob){
+      //A Blob() is almost a File() - it's just missing the two properties below which we will add
+      theBlob.lastModifiedDate = new Date();
+      theBlob.name = 'temp-file.json';
+      return theBlob;
+    }
+
+
+    
     /* 3️⃣ Implement Render Function */
     const render = async () => {
       const isLoggedIn = await magic.user.isLoggedIn();
@@ -234,63 +360,11 @@
         /* Get user metadata including email */
         // window.document.location.href = "/my-account.html"
         const userMetadata = await magic.user.getMetadata();
-        const { email } = await magic.user.getMetadata();
-          //Check valid invite
-          if(invite !== null){
-          let validInvite = await checkInvite(invite,email);
-          if (validInvite.data !== false){
-            if(validInvite.data.inputEmail !== undefined){
-              if(validInvite.data.inputEmail === email){
-                //save new user
-                await fdb.connections.put({
-                  name: validInvite.data.invitedBy,
-                  publicAddress: validInvite.data.senderKey,
-                  friendState:"ZZZ",
-                  connectionState: "active"
-                })
-              }
-            }
-            
-          }
-          // let userData = await getUser(did);
-          // if(userData !== undefined){
-          //   console.log(userData)
-          //   //todo: import database
-          //   db = await Dexie.import(userData, {
-          //     progressCallback
-          //   });
-          //   console.log("Import complete");
-          // } else {
-            //write initial data to database
-            db.open()
-            .then(async function(){
-              return db.settings.get({email:userMetadata.email});
-            })
-            .then(function (user) {
-              console.log(user)
-              if(user)
-                console.log(user)
-              else{
-                db.settings.put({id:1,email: email,uid:userMetadata.issuer,publicAddress:userMetadata.publicAddress})
-                window.document.location.href = "/my-account.html"
-              }
-                
-            }).catch(function(error) {
-              console.log ("Ooops: " + error);
-            });
-          // }
-
-          html = `
-            <h1>Current user: ${userMetadata.email}</h1>
-            <button><a href="/friends.html">Friends</a></button>
-            <button><a href="/my-account.html">Account</a></button>
-            <button onclick="handleLogout()">Logout</button>
-          `;
-        }
         
+          
         //write initial data to database
         db.open()
-        .then(function(){
+        .then(async function(){
           return db.settings.get({email:userMetadata.email});
         })
         .then(async function (user) {
@@ -298,14 +372,14 @@
           if(user)
             console.log(user)
           else{
-            
+            await db.settings.put({id:1,email: email,uid:userMetadata.issuer,publicAddress:userMetadata.publicAddress})
             window.document.location.href = "/my-account.html"
           }
             
         }).catch(function(error) {
           console.log ("Ooops: " + error);
         });
-        
+        // }
 
         html = `
           <h1>Current user: ${userMetadata.email}</h1>
@@ -348,35 +422,6 @@
       const base64 = await fetch(data);
       const blob = await base64.blob();
       await fdb.import(blob, [{overwriteValues:true}]);
-    }
-
-
-    let getFriends = async (chanId,blob) => {
-      //
-      // Export to Blob
-      //
-      let reader = new FileReader();
-      reader.readAsDataURL(blob); 
-      reader.onloadend = async function() {
-        let base64data = reader.result;                
-        // console.log(base64data);
-        const init = {
-          method: 'GET',
-          headers: {
-            "Accept": "application/json",
-            "Content-Type": "application/json",
-            'X-Custom-DID': did
-          }
-        };
-        try {
-          const fetchResponse = await fetch(`https://api.noctis-alba.com/getFriends`, init);
-          const data = await fetchResponse.json();
-          return data;
-        } catch (e) {
-          return e;
-        }
-        return true;
-      };
     }
 	</script>
 </html>
