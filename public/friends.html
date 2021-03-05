@@ -234,7 +234,7 @@
   var ably = new Ably.Realtime('FoCmEw.GR0MCw:l2bFPn7u_Bj7fMzV');
   
   let closeModal = () => {
-    $('#alertModal').modal('hide');
+    $('#inviteModal').modal('hide');
   }
   let db = new Dexie("users");
   db.version(1).stores({
@@ -596,7 +596,6 @@
             $("#inviteModal").modal('show');
             $('#loadingModal').modal('hide');
           }
-            
         })
         await displayFriends();
       }else{
