@@ -235,6 +235,7 @@
   
   let closeModal = () => {
     $('#inviteModal').modal('hide');
+    $('#alertModal').modal('hide');
   }
   let db = new Dexie("users");
   db.version(1).stores({

@@ -255,6 +255,7 @@
             //export friends
             await exportFriends();
           }
+          let invited = await handleInvite();
         }else{
           // Already have friends saved; add new invite if available and sync
           console.log("friends found");
