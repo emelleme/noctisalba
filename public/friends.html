@@ -316,13 +316,13 @@
       }
 
       const chanId = user.publicAddress.substr(user.publicAddress.length - 6);
-      $('#userMenu').show();
+      // $('#userMenu').show();
       if(user.name === undefined)
         window.document.location.href = "/my-account.html"
       document.getElementById("userName").innerHTML = user.name;
       (user.image  !== undefined ? document.getElementById("avatarIcon").src = user.image : console.log('no image'));
      
-      let ably = new Ably.Realtime({key:'FoCmEw.GR0MCw:l2bFPn7u_Bj7fMzV',clientId:user.publicAddress});
+      const ably = new Ably.Realtime({key:'FoCmEw.GR0MCw:l2bFPn7u_Bj7fMzV'});
       ably.connection.on('connected', function() {
         const channel = ably.channels.get("chan:"+chanId);
         channel.subscribe( async function(message) {
@@ -357,11 +357,12 @@
   let toggleState = async (chanId, state) => {
     let {publicAddress} = await magic.user.getMetadata();
     var channel = ably.channels.get("chan:"+chanId);
-    channel.publish("stateChange",{ "from":publicAddress, "chanId":publicAddress.substr(publicAddress.length - 6), "state": state }, (err)=>{
+    channel.publish("stateChange",{ "from":publicAddress, "chanId":publicAddress.substr(publicAddress.length - 6), "state": state }, async (err)=>{
       if(err) {
         console.log('Unable to publish message; err = ' + err.message);
       } else {
         console.log('Message successfully sent');
+        await exportFriends();
       }
     });
   }
@@ -416,20 +417,17 @@
     // Export to Blob
     //
     let did = await magic.user.getIdToken();
-    const blob = await fdb.export(fdb, [{prettyJson: true}]);
-    let reader = new FileReader();
-    reader.readAsDataURL(blob); 
-    reader.onloadend = async function() {
-      let base64data = reader.result;                
+               
       // console.log(base64data);
-      const init = {
-        method: 'GET',
-        headers: {
-          "Content-Type": "text/plain",
-          'X-Custom-DID': did
-        }
-      };
+      
       try {
+        const init = {
+          method: 'GET',
+          headers: {
+            "Content-Type": "text/plain",
+            'X-Custom-DID': did
+          }
+        };
         const fetchResponse = await fetch(`https://api.noctis-alba.com/getFriends`, init);
         const data = await fetchResponse.blob();
         console.log(data.size);
@@ -440,17 +438,17 @@
           const blob = new Blob([bytes]);
           const b2f = blobToFile(blob);
           console.log(b2f)
-          const imp = await fdb.import(b2f);
+          const imp = await fdb.import(b2f,{overwriteValues:true});
           console.log(imp)
           
         }else{
           //something went wrong. todo: add error message
         }
       } catch (e) {
+        console.log(e)
         return e;
       }
       return true;
-    };
   }
 
   function blobToFile(theBlob){
@@ -474,15 +472,17 @@
 // }
   $(document).ready(async function(){
     $('#loadingModal').modal('show');
-    render();
+    
     const isLoggedIn = await magic.user.isLoggedIn();
-
+    
     if (!isLoggedIn) {
       window.document.location.href = "/"
       // initialize database
       
     }
     await loadFriends();
+    render();
+    
     $('#loadingModal').modal('hide');
     $(".newSwitch").on("click", e => {
       console.log(e.data("id"));

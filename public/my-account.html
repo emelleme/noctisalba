@@ -285,7 +285,7 @@
                 (user.image  !== undefined ? document.getElementById("avatarIcon").src = user.image : console.log('no image'));
                 (user.image  !== undefined ? document.getElementById("wizardPicturePreview").src = user.image : console.log('no image'));
               } else{
-                db.settings.add({id:1,email: document.getElementById("inputEmail").value,uid:userMetadata.issuer,publicAddress:userMetadata.publicAddress})
+                await db.settings.add({id:1,email: document.getElementById("inputEmail").value,uid:userMetadata.issuer,publicAddress:userMetadata.publicAddress})
               }
             }
             
