@@ -327,7 +327,7 @@
                 name: validInvite.data.invitedBy,
                 publicAddress: validInvite.data.senderKey,
                 friendState:"ZZZ",
-                connectionState: "active"
+                connectionState: "UP"
               })
               return true;
             }
@@ -377,7 +377,7 @@
           if(user)
             console.log(user)
           else{
-            await db.settings.put({id:1,email: email,uid:userMetadata.issuer,publicAddress:userMetadata.publicAddress})
+            await db.settings.put({id:1,email: userMetadata.email,uid:userMetadata.issuer,publicAddress:userMetadata.publicAddress})
             window.document.location.href = "/my-account.html"
           }
             
