@@ -114,8 +114,8 @@
     });
     
     let fdb = new Dexie("na");
-    fdb.version(2).stores({
-        connections: '++id,uid,name,email,myState,friendState,connectionState,inviteCode,*publicAddress'
+    fdb.version(3).stores({
+        connections: '++id,uid,name,email,myState,friendState,connectionState,inviteCode,&publicAddress'
     });
 
     let invitedb = new Dexie("invites");

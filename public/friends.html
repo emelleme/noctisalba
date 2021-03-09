@@ -237,14 +237,18 @@
     $('#inviteModal').modal('hide');
     $('#alertModal').modal('hide');
   }
+
+  let newFriendAlert = () => {
+    $('#inviteModal').modal('show');
+  }
   let db = new Dexie("users");
   db.version(1).stores({
       settings: 'id,name,email'
   });
 
   let fdb = new Dexie("na");
-  fdb.version(2).stores({
-      connections: '++id,uid,name,email,myState,friendState,connectionState,inviteCode,*publicAddress'
+  fdb.version(3).stores({
+      connections: '++id,uid,name,email,myState,friendState,connectionState,inviteCode,&publicAddress'
   });
 
   let invitedb = new Dexie("invites");
@@ -295,7 +299,7 @@
           await fdb.connections
           .where("inviteCode")
           .equals(data.data.inviteCode)
-          .modify({publicAddress: data.data.publicAddress,connectionState:"ZZZ"})
+          .modify({publicAddress: data.data.publicAddress,connectionState:"active",friendState:data.data.friendState})
           // await invitedb.incoming.delete(1);
           return true;
         }else{
@@ -353,23 +357,7 @@
       const ably = new Ably.Realtime({key:'FoCmEw.GR0MCw:l2bFPn7u_Bj7fMzV'});
       ably.connection.on('connected', function() {
         const channel = ably.channels.get("chan:"+chanId);
-        channel.subscribe( async function(message) {
-          console.log(message.data);
-          await fdb.connections
-          .where("publicAddress")
-          .equals(message.data.from).modify({friendState: message.data.state});
-          let friend = await fdb.connections
-          .where("publicAddress")
-          .equals(message.data.from).first()
-          console.log(friend)
-          document.getElementById(message.data.chanId+'_state').innerHTML = message.data.state;
-          document.getElementById(message.data.chanId+'_state').className = '';
-          document.getElementById(message.data.chanId+'_state').className = message.data.state.toLowerCase();
-          document.getElementById("alertBox").innerHTML = friend.name + " is " + message.data.state + "!";
-          $('#alertModal').modal('show');
-          await exportFriends();
-          // alert(message.data.state+"!!")
-        });
+        channel.subscribe( handleIncomingMessage);
         console.log('connected')
       });
 
@@ -381,6 +369,49 @@
       console.log(error)
     })
   };
+
+  let handleIncomingMessage = async function(message) {
+    console.log(message.data);
+    //parse message
+    if(message.data.inviteCode !== undefined){
+      //check for user by invite code and update
+      let friend = await fdb.connections
+      .where("inviteCode")
+      .equals(message.data.inviteCode);
+    }
+    let friend = await fdb.connections
+    .where("publicAddress")
+    .equals(message.data.from);
+    let fcount = friend.count();
+    if(fcount === 0){
+      //something is wrong
+      return false;
+    }
+
+    let friend1 = await friend.first();
+    
+    
+    console.log(friend1.connectionState)
+    let mod = {friendState: message.data.state}
+    
+    if(friend1.connectionState == "pending"){
+      mod.connectionState = 'active';
+      mod.publicAddress = message.data.from;
+      await friend.modify(mod);
+      $("#inviteModal").modal('show');
+    }else{
+      await friend.modify(mod);
+      document.getElementById(message.data.chanId+'_state').innerHTML = message.data.state;
+      document.getElementById(message.data.chanId+'_state').className = '';
+      document.getElementById(message.data.chanId+'_state').className = message.data.state.toLowerCase();
+      document.getElementById("alertBox").innerHTML = friend.name + " is " + message.data.state + "!";
+      $('#alertModal').modal('show');
+    }
+    
+    
+    await exportFriends();
+    // alert(message.data.state+"!!")
+  }
 
   let toggleState = async (chanId, state) => {
     let {publicAddress} = await magic.user.getMetadata();
@@ -542,9 +573,6 @@
         let disableSwitch = "";
         if(friend.friendState !== undefined){
           state = friend.friendState;
-        }
-        if(friend.connectionState !== 'pending'){
-          disableSwitch = "";
         }
         const chanId = (friend.publicAddress !== undefined ? friend.publicAddress.substr(friend.publicAddress.length - 6) : "");
         var newRow = $("<tr>");
