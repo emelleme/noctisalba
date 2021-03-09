@@ -378,20 +378,19 @@
       let friend = await fdb.connections
       .where("inviteCode")
       .equals(message.data.inviteCode);
+    }else{
+      let friend = await fdb.connections
+      .where("publicAddress")
+      .equals(message.data.from);
     }
-    let friend = await fdb.connections
-    .where("publicAddress")
-    .equals(message.data.from);
+    
     let fcount = friend.count();
     if(fcount === 0){
       //something is wrong
       return false;
+    }else{
+      let friend1 = await friend.first();
     }
-
-    let friend1 = await friend.first();
-    
-    
-    console.log(friend1.connectionState)
     let mod = {friendState: message.data.state}
     
     if(friend1.connectionState == "pending"){
