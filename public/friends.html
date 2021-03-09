@@ -373,42 +373,43 @@
   let handleIncomingMessage = async function(message) {
     console.log(message.data);
     //parse message
-    if(message.data.inviteCode !== undefined){
-      //check for user by invite code and update
-      let friend = await fdb.connections
-      .where("inviteCode")
-      .equals(message.data.inviteCode);
-    }else{
-      let friend = await fdb.connections
-      .where("publicAddress")
-      .equals(message.data.from);
-    }
     
+    let friend = await fdb.connections
+    .where("publicAddress")
+    .equals(message.data.from);
     let fcount = friend.count();
     if(fcount === 0){
       //something is wrong
-      return false;
-    }else{
+      if(message.data.inviteCode !== undefined){
+        //check for user by invite code and update
+        let friend = await fdb.connections
+        .where("inviteCode")
+        .equals(message.data.inviteCode);
+      }
+    }
+    try{
       let friend1 = await friend.first();
+      let mod = {friendState: message.data.state}
+    
+      if(friend1.connectionState == "pending"){
+        mod.connectionState = 'active';
+        mod.publicAddress = message.data.from;
+        await friend.modify(mod);
+        $("#inviteModal").modal('show');
+      }else{
+        await friend.modify(mod);
+        document.getElementById(message.data.chanId+'_state').innerHTML = message.data.state;
+        document.getElementById(message.data.chanId+'_state').className = '';
+        document.getElementById(message.data.chanId+'_state').className = message.data.state.toLowerCase();
+        document.getElementById("alertBox").innerHTML = friend1.name + " is " + message.data.state + "!";
+        $('#alertModal').modal('show');
+      }
+      await exportFriends();
+      return true;
+    }catch(err){
+      console.log(err)
+      return false;
     }
-    let mod = {friendState: message.data.state}
-    
-    if(friend1.connectionState == "pending"){
-      mod.connectionState = 'active';
-      mod.publicAddress = message.data.from;
-      await friend.modify(mod);
-      $("#inviteModal").modal('show');
-    }else{
-      await friend.modify(mod);
-      document.getElementById(message.data.chanId+'_state').innerHTML = message.data.state;
-      document.getElementById(message.data.chanId+'_state').className = '';
-      document.getElementById(message.data.chanId+'_state').className = message.data.state.toLowerCase();
-      document.getElementById("alertBox").innerHTML = friend.name + " is " + message.data.state + "!";
-      $('#alertModal').modal('show');
-    }
-    
-    
-    await exportFriends();
     // alert(message.data.state+"!!")
   }
 
