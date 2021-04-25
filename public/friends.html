@@ -275,7 +275,7 @@
         return e;
     }
   }
-  let magic = new Magic("pk_live_09D4E08E8CBA5F91");
+  let magic = new Magic("pk_live_9058DA01FE2BCB51");
 
   let checkInvites = async (invites) => {
     let did = await magic.user.getIdToken();
@@ -299,7 +299,7 @@
           await fdb.connections
           .where("inviteCode")
           .equals(data.data.inviteCode)
-          .modify({publicAddress: data.data.publicAddress,connectionState:"active",friendState:data.data.friendState})
+          .modify({publicAddress: data.data.publicAddress,connectionState:"UP",friendState:data.data.friendState})
           // await invitedb.incoming.delete(1);
           return true;
         }else{
@@ -392,7 +392,7 @@
       let mod = {friendState: message.data.state}
     
       if(friend1.connectionState == "pending"){
-        mod.connectionState = 'active';
+        mod.connectionState = 'UP';
         mod.publicAddress = message.data.from;
         await friend.modify(mod);
         $("#inviteModal").modal('show');

@@ -167,7 +167,7 @@
 
   <script src="https://cdn.jsdelivr.net/gh/gitbrent/bootstrap4-toggle@3.6.1/js/bootstrap4-toggle.min.js"></script>
 	<script>
-    let magic = new Magic("pk_live_09D4E08E8CBA5F91");
+    let magic = new Magic("pk_live_9058DA01FE2BCB51");
     const urlParams = new URLSearchParams(window.location.search);
     const invite = urlParams.get('acceptInvite');
     console.log(invite)
@@ -369,7 +369,7 @@
         let validInvite = await checkInvite(invite,email);
         if (validInvite.data !== false){
           if(validInvite.data.inputEmail !== undefined){
-            if(validInvite.data.inputEmail === email){
+            if(validInvite.data.inputEmail.toLowerCase() === email.toLowerCase()){
               // Invite accepted! save new user
               try{
                 let ff = await fdb.connections.put({
@@ -455,6 +455,11 @@
           <button><a href="/my-account.html">Account</a></button>
           <button onclick="handleLogout()">Logout</button>
         `;
+      }else{
+        // Clear dexie db
+        await db.delete();
+        await fdb.delete();
+        await invitedb.delete();
       }
 
       document.getElementById("app").innerHTML = html;
