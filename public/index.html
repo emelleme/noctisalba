@@ -216,6 +216,7 @@
           const blob = new Blob([bytes]);
           const b2f = blobToFile(blob);
           console.log(b2f)
+          await fdb.open();
           const imp = await fdb.import(b2f,{overwriteValues:true});
           console.log(imp)
           return true;
@@ -235,6 +236,7 @@
       // Export to Blob
       //
       let did = await magic.user.getIdToken();
+      await fdb.open();
       const blob = await fdb.export(fdb, [{prettyJson: true}]);
       let reader = new FileReader();
       console.log(blob)
@@ -372,6 +374,7 @@
             if(validInvite.data.inputEmail.toLowerCase() === email.toLowerCase()){
               // Invite accepted! save new user
               try{
+                await fdb.open();
                 let ff = await fdb.connections.put({
                   name: validInvite.data.invitedBy,
                   publicAddress: validInvite.data.senderKey,
